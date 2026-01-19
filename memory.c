@@ -37,7 +37,6 @@ void *arena_alloc(Arena *a, size_t size) {
 
 	// Allocate a new chunk and return its position.
 	void *ptr = &a->buf[offset];
-	a->prev_offset = offset;
 	a->curr_offset = offset + size;
 	return ptr;
 }
@@ -46,10 +45,8 @@ void arena_init(Arena *a, void *backing_buffer, size_t backing_buffer_len) {
 	a->buf = (unsigned char *)backing_buffer;
 	a->len = backing_buffer_len;
 	a->curr_offset = 0;
-	a->prev_offset = 0;
 }
 
 void arena_free(Arena *a) {
 	a->curr_offset = 0;
-	a->prev_offset = 0;
 }
