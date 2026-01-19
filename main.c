@@ -36,9 +36,15 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 	Token tok = tokens[0];
 
 	switch(type) {
-	case CD:
-		printf("BUILTIN cd: %.*s\n", (int)tok.len, tok.raw);
+	case CD: {
+		char dirbuf[256];
+		memcpy(dirbuf, tok.raw, tok.len);
+		int ok = chdir(dirbuf);
+		if (ok != 0) {
+			printf("cd: could not find directory \"%s\"\n", dirbuf);
+		}
 		break;
+	}
 	case PWD: {
 		char cwd[PATH_MAX];
 		char *res = getcwd(cwd, PATH_MAX);
