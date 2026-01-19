@@ -35,21 +35,43 @@ BuiltinCommand try_parse_builtin(Token *tok) {
 void handle_builtin(Token *tokens, BuiltinCommand type) {
 	Token tok = tokens[0];
 
+	// Pull out the current working directory and store it in path. Some
+	// builtin commands need to manipulate the path so setting this to the
+	// current working directory is a sensible default.
+	char path[PATH_MAX] = {0};
+	char *res = getcwd(path, PATH_MAX);
+	assert(res != NULL);
+
 	switch(type) {
 	case CD: {
-		char dirbuf[256];
-		memcpy(dirbuf, tok.raw, tok.len);
-		int ok = chdir(dirbuf);
+		// Set the path to the directory specified by the user if it's
+		// an absolute path. Zero out the remaining contents of the path
+		// buffer so that we avoid conflicts with the user's directory.
+		if (tok.raw[0] == '/') {
+			memcpy(path, tok.raw, tok.len);
+			memset(path+tok.len, 0, PATH_MAX-tok.len);
+		} else {
+			// Handle relative path navigation.
+			unsigned long pathlen = strlen(path);
+
+			// If the current path doesn't have a trailing '/',
+			// add it before appending the relative path to path.
+			if (path[pathlen] != '/') {
+				path[pathlen] = '/';
+				pathlen += 1;
+			}
+
+			assert((pathlen+tok.len) < PATH_MAX);
+			memcpy(&path[pathlen], tok.raw, tok.len);
+		}
+		int ok = chdir(path);
 		if (ok != 0) {
-			printf("cd: could not find directory \"%s\"\n", dirbuf);
+			printf("cd: could not find directory \"%s\"\n", path);
 		}
 		break;
 	}
 	case PWD: {
-		char cwd[PATH_MAX];
-		char *res = getcwd(cwd, PATH_MAX);
-		assert(res != NULL);
-		printf("%s\n", cwd);
+		printf("%s\n", path);
 		break;
 	}
 	default:
