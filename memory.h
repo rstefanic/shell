@@ -1,3 +1,6 @@
+#ifndef _MEMORYH_
+#define _MEMORYH_
+
 #include <stdio.h>
 #include <stdint.h>
 
@@ -13,3 +16,5 @@ uintptr_t align_forward(uintptr_t ptr, size_t align);
 void *arena_alloc(Arena *a, size_t size);
 void arena_init(Arena *a, void *backing_buffer, size_t backing_buffer_len);
 void arena_free(Arena *a);
+
+#endif
