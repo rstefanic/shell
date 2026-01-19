@@ -1,0 +1,13 @@
+# Object files
+*.o
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+*.so
+
+# Executables
+*.out
+shell
