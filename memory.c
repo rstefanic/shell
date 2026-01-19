@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "memory.h"
 
@@ -38,6 +39,7 @@ void *arena_alloc(Arena *a, size_t size) {
 	// Allocate a new chunk and return its position.
 	void *ptr = &a->buf[offset];
 	a->curr_offset = offset + size;
+	memset(ptr, 0, size); // default new memory to 0
 	return ptr;
 }
 
