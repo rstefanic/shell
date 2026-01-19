@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "lexer.h"
 #include "memory.h"
 
 typedef enum BuiltinCommand BuiltinCommand;
@@ -21,7 +22,7 @@ BuiltinCommand parse_builtin(char *input) {
 }
 
 int main() {
-	size_t backing_buffer_len = 1024;
+	size_t backing_buffer_len = 1024 * 10; // 10kb
 	unsigned char backing_buffer[backing_buffer_len];
 
 	Arena a = {0};
@@ -36,14 +37,31 @@ int main() {
 		printf("> ");
 		fgets(input, input_len, stdin);
 
+		size_t token_len = 256;
+		Token *tokens = arena_alloc(&a, token_len * sizeof(Token));
+		lex(tokens, token_len, input, strlen(input));
+
+		// DEBUG: Print tokens
+		for (size_t i = 0; i < token_len; i++) {
+			Token tok = tokens[i];
+			if (tok.type == EMPTY)
+				break;
+
+			printf("type: %d, raw: [%.*s]\n",
+				tok.type,
+				(int)tok.len,
+				tok.raw);
+		}
+
 		switch(parse_builtin(input)) {
 		case CD:
-			printf("\nChange directory: %s\n", &input[2]);
+			printf("BUILTIN cd: %s\n", &input[2]);
 			break;
 		case EXIT:
+			printf("BUILTIN: exit\n");
 			return 0;
 		case NONE:
-			printf("\n%s\n", input);
+			printf("%s\n", input);
 			break;
 		}
 	}
