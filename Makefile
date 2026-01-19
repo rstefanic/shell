@@ -3,7 +3,7 @@ CFLAGS = -Wall -g
 
 TARGET = shell
 
-OBJS = main.o memory.o
+OBJS = main.o memory.o lexer.o
 
 run: $(TARGET)
 	@./$(TARGET)
@@ -16,6 +16,9 @@ main.o: main.c
 
 memory.o: memory.c memory.h
 	$(CC) $(CFLAGS) -c memory.c -o memory.o
+
+lexer.o: lexer.c
+	$(CC) $(CFLAGS) -c lexer.c -o lexer.o
 
 clean:
 	rm -f $(TARGET) $(OBJS)
