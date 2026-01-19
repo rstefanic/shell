@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -11,14 +13,47 @@ enum BuiltinCommand {
 	EXIT
 };
 
-BuiltinCommand parse_builtin(char *input) {
-	if (memcmp(input, "cd", 2) == 0) {
+BuiltinCommand try_parse_builtin(Token *tok) {
+	char buf[256];
+	assert(tok->len < 256);
+	memcpy(buf, tok->raw, tok->len);
+
+	if (memcmp(buf, "cd", 2) == 0) {
 		return CD;
-	} else if (memcmp(input, "exit", 4) == 0) {
+	} else if (memcmp(buf, "exit", 4) == 0) {
 		return EXIT;
 	}
 
 	return NONE;
+}
+
+void handle_builtin(Token *tokens, BuiltinCommand type) {
+	Token tok = tokens[0];
+
+	switch(type) {
+	case CD:
+		printf("BUILTIN cd: %.*s\n", (int)tok.len, tok.raw);
+		break;
+	default:
+		assert(false); // unreachable
+	}
+
+}
+
+void print_tokens(Token *tokens, size_t token_len) {
+	size_t i = 0;
+	for (i = 0; i < token_len; i++) {
+		Token tok = tokens[i];
+
+		// Stop as soon as we hit our first empty token.
+		if (tok.type == EMPTY)
+			break;
+
+		printf("type: %d, raw: (%.*s)\n",
+			tok.type,
+			(int)tok.len,
+			tok.raw);
+	}
 }
 
 int main() {
@@ -41,28 +76,21 @@ int main() {
 		Token *tokens = arena_alloc(&a, token_len * sizeof(Token));
 		lex(tokens, token_len, input, strlen(input));
 
-		// DEBUG: Print tokens
-		for (size_t i = 0; i < token_len; i++) {
-			Token tok = tokens[i];
-			if (tok.type == EMPTY)
+		Token *tok = &tokens[0];
+		assert(tok->type != EMPTY);
+
+		if (tok->type == LITERAL) {
+			BuiltinCommand cmd = try_parse_builtin(tok);
+			if (cmd == NONE) {
+				print_tokens(tokens, token_len);
+			} else if (cmd == EXIT) {
 				break;
-
-			printf("type: %d, raw: [%.*s]\n",
-				tok.type,
-				(int)tok.len,
-				tok.raw);
-		}
-
-		switch(parse_builtin(input)) {
-		case CD:
-			printf("BUILTIN cd: %s\n", &input[2]);
-			break;
-		case EXIT:
-			printf("BUILTIN: exit\n");
-			return 0;
-		case NONE:
-			printf("%s\n", input);
-			break;
+			} else {
+				// We already know the first token was this
+				// builtin command, so we'll pass in the
+				// remaining tokens to be handled.
+				handle_builtin(&tokens[1], cmd);
+			}
 		}
 	}
 
