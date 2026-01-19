@@ -1,7 +1,9 @@
 #include <assert.h>
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "lexer.h"
 #include "memory.h"
@@ -10,6 +12,7 @@ typedef enum BuiltinCommand BuiltinCommand;
 enum BuiltinCommand {
 	NONE,
 	CD,
+	PWD,
 	EXIT
 };
 
@@ -20,6 +23,8 @@ BuiltinCommand try_parse_builtin(Token *tok) {
 
 	if (memcmp(buf, "cd", 2) == 0) {
 		return CD;
+	} else if (memcmp(buf, "pwd", 3) == 0) {
+		return PWD;
 	} else if (memcmp(buf, "exit", 4) == 0) {
 		return EXIT;
 	}
@@ -34,10 +39,16 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 	case CD:
 		printf("BUILTIN cd: %.*s\n", (int)tok.len, tok.raw);
 		break;
+	case PWD: {
+		char cwd[PATH_MAX];
+		char *res = getcwd(cwd, PATH_MAX);
+		assert(res != NULL);
+		printf("%s\n", cwd);
+		break;
+	}
 	default:
 		assert(false); // unreachable
 	}
-
 }
 
 void print_tokens(Token *tokens, size_t token_len) {
