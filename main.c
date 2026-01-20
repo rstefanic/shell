@@ -2,7 +2,9 @@
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "lexer.h"
@@ -95,6 +97,64 @@ void print_tokens(Token *tokens, size_t token_len) {
 	}
 }
 
+void execute_program(Token *tokens, size_t token_len) {
+	Token tok = tokens[0];
+	char *path;	// for the PATH environment variable
+	char *saveptr;	// used to maintain context between strtok_r calls
+	char *curr;	// current path that's being checked
+
+	// Make sure this token isn't empty.
+	assert(tok.type != EMPTY);
+
+	// Get the PATH directories and split them.
+	path = getenv("PATH");
+	curr = strtok_r(path, ":", &saveptr);
+
+	// TODO: handle case user runs program relative to cwd
+	// Look through each path to see if the program exists in one of them.
+	while (curr != NULL) {
+		// Copy the PATH directory bin path.
+		char bin[PATH_MAX] = {0};
+		size_t curr_len = strlen(curr);
+		memcpy(bin, curr, curr_len);
+
+		// Check if the curr path has trailing '/' char.
+		if (bin[curr_len-1] != '/') {
+			bin[curr_len] = '/';
+			curr_len += 1;
+		}
+
+		// Append the binary name to the path string
+		memcpy(&bin[curr_len], tok.raw, tok.len);
+
+		struct stat file;
+		int res = stat(bin, &file);
+
+		// Open the program to read its output if it exists.
+		// NOTE: Currently only opens the program in read mode.
+		// NOTE: 1kb buffer size to read program output is small.
+		// TODO: Add ability to pass along arguments to program.
+		if (res == 0) {
+			FILE *fp;
+			fp = popen(bin, "r");
+
+			if (fp != NULL) {
+				char buf[1024];
+				while (fgets(buf, sizeof(buf), fp) != NULL) {
+					printf("%s", buf);
+				}
+				pclose(fp);
+				return;
+			}
+
+		}
+	
+		curr = strtok_r(NULL, ":", &saveptr);
+	}
+
+	printf("\"%.*s\": No such program\n", (int)tok.len, tok.raw);
+}
+
 int main() {
 	size_t backing_buffer_len = 1024 * 10; // 10kb
 	unsigned char backing_buffer[backing_buffer_len];
@@ -122,6 +182,7 @@ int main() {
 			BuiltinCommand cmd = try_parse_builtin(tok);
 			if (cmd == NONE) {
 				print_tokens(tokens, token_len);
+				execute_program(tokens, token_len);
 			} else if (cmd == EXIT) {
 				break;
 			} else {
