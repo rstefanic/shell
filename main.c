@@ -52,6 +52,17 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 		if (tok.raw[0] == '/') {
 			memcpy(path, tok.raw, tok.len);
 			memset(path+tok.len, 0, PATH_MAX-tok.len);
+		} else if (tok.raw[0] == '~') {
+			const char* home = getenv("HOME");
+			size_t homelen = strlen(home);
+			size_t totallen = homelen;
+			memcpy(path, home, homelen);
+
+			if (tok.len > 1) {
+				memcpy(&path[homelen], &tok.raw[1], tok.len - 1);
+				totallen += tok.len - 1;
+			}
+			memset(path+totallen, 0, PATH_MAX-totallen);
 		} else {
 			// Handle relative path navigation.
 			unsigned long pathlen = strlen(path);
