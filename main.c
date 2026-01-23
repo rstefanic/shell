@@ -171,6 +171,7 @@ void execute_program(Token *tokens, size_t token_len) {
 	assert(tok.type != EMPTY);
 
 	path = getenv("PATH");		// get the PATH directories
+	assert(path != NULL);
 	assert(strlen(path) < 1024);	// ensure our buffer is big enough
 
 	// Copy PATH into pathbuf since strtok_r destroys the original string.
