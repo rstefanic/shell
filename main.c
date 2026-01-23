@@ -178,7 +178,7 @@ void execute_program(Token *tokens, size_t token_len) {
 	// This allows us to pick apart the paths again for subsequent calls.
 	// TODO: Try moving the parsing of all the PATH directories out so
 	//	 this only occurs once.
-	memcpy(pathbuf, path, 1024);
+	strcpy(pathbuf, path);
 	curr = strtok_r(pathbuf, ":", &saveptr);
 
 	// TODO: handle case user runs program relative to cwd

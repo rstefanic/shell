@@ -11,3 +11,7 @@
 # Executables
 *.out
 shell
+
+# Valgrind
+valgrind*
+vgcore.*
