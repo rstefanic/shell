@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -34,6 +35,53 @@ BuiltinCommand try_parse_builtin(Token *tok) {
 	return NONE;
 }
 
+void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
+	assert(srclen > 0);
+
+	size_t src_i = 0;
+	size_t dest_i = 0;
+	while (src_i < srclen) {
+		char c = src[src_i++];
+
+		// If this is a dollar sign, then we're going to enter into
+		// reading this as a variable to be interpreted.
+		if (c == '$') {
+			c = src[src_i++]; // advance one to skip the '$'
+
+			// Setup varname buffer
+			size_t maxvarnamelen = 256;
+			char varnamebuf[maxvarnamelen];
+			size_t j = 0;
+
+			// Read the characters until we hit a non-alphanumeric.
+			while (c != '\0' && isalnum(c) && j < maxvarnamelen) {
+				varnamebuf[j++] = c;
+				c = src[src_i++];
+			}
+
+			// Back up the pointer one to "unconsume" the last
+			// character that was not part of the variable.
+			src_i--;
+
+			// Get the variable name from the environment and
+			// replace the variable name with the evaluated name
+			// in the final output string.
+			char* var = getenv(varnamebuf);
+			if (var != NULL) {
+				j = 0;
+				c = var[j];
+				while (c != '\0') {
+					dest[dest_i++] = c;
+					c = var[j++];
+				}
+			}
+		} else {
+			// Otherwise we'll simply copy the char to the dest str.
+			dest[dest_i++] = c;
+		}
+	}
+}
+
 void handle_builtin(Token *tokens, BuiltinCommand type) {
 	Token tok = tokens[0];
 
@@ -41,6 +89,7 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 	// builtin commands need to manipulate the path so setting this to the
 	// current working directory is a sensible default.
 	char path[PATH_MAX] = {0};
+	char final[PATH_MAX] = {0};
 	char *res = getcwd(path, PATH_MAX);
 	assert(res != NULL);
 
@@ -49,7 +98,7 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 		// Set the path to the directory specified by the user if it's
 		// an absolute path. Zero out the remaining contents of the path
 		// buffer so that we avoid conflicts with the user's directory.
-		if (tok.raw[0] == '/') {
+		if (tok.raw[0] == '/' || tok.raw[0] == '$') {
 			memcpy(path, tok.raw, tok.len);
 			memset(path+tok.len, 0, PATH_MAX-tok.len);
 		} else if (tok.raw[0] == '~') {
@@ -77,7 +126,10 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 			assert((pathlen+tok.len) < PATH_MAX);
 			memcpy(&path[pathlen], tok.raw, tok.len);
 		}
-		int ok = chdir(path);
+
+		eval_env_variables(path, strlen(path), final, PATH_MAX);
+
+		int ok = chdir(final);
 		if (ok != 0) {
 			printf("cd: could not find directory \"%s\"\n", path);
 		}
