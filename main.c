@@ -51,6 +51,7 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 			// Setup varname buffer
 			size_t maxvarnamelen = 256;
 			char varnamebuf[maxvarnamelen];
+			memset(varnamebuf, 0, maxvarnamelen);
 			size_t j = 0;
 
 			// Read the characters until we hit a non-alphanumeric.
