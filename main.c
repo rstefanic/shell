@@ -81,6 +81,7 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 			// with the evaluated name.
 			char* var = getenv(varnamebuf);
 			if (var != NULL) {
+				assert(dest_i + strlen(var) < destlen);
 				j = 0;
 				c = var[j];
 				while (c != '\0') {
@@ -90,7 +91,9 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 			}
 		} else {
 			// Otherwise we'll simply copy the char to the dest str.
-			dest[dest_i++] = c;
+			if (dest_i < destlen) { // check if we have enough space.
+				dest[dest_i++] = c;
+			}
 		}
 	}
 }
