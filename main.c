@@ -10,6 +10,7 @@
 
 #include "lexer.h"
 #include "memory.h"
+#include "string.h"
 
 typedef enum BuiltinCommand BuiltinCommand;
 enum BuiltinCommand {
@@ -289,16 +290,14 @@ int main() {
 
 	for(;;) {
 		arena_free(&a);
-
-		size_t input_len = 256;
-		char* input = arena_alloc(&a, input_len);
+		String input = string_new(&a, 256);
 
 		printf("> ");
-		fgets(input, input_len, stdin);
+		fgets(input.value, input.len, stdin);
 
 		size_t token_len = 256;
 		Token *tokens = arena_alloc(&a, token_len * sizeof(Token));
-		lex(tokens, token_len, input, strlen(input));
+		lex(tokens, token_len, input.value, input.len);
 
 		Token *tok = &tokens[0];
 		assert(tok->type != EMPTY);
