@@ -126,6 +126,7 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 			memset(path+tok.raw.len, 0, PATH_MAX-tok.raw.len);
 		} else if (tok.raw.value[0] == '~') {
 			const char* home = getenv("HOME");
+			assert(home != NULL);
 			size_t homelen = strlen(home);
 			size_t totallen = homelen;
 			memcpy(path, home, homelen);
