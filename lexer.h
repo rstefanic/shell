@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "memory.h"
+#include "string.h"
 
 enum TokenType {
 	EMPTY,
@@ -20,11 +21,10 @@ typedef struct Token Token;
 
 typedef struct Lexer Lexer;
 struct Lexer {
-	char	*buf;	// underlying buffer we're lexing
-	size_t	len;	// length of the underlying buffer
+	String *buf;
 	size_t	ptr;	// pointer to current character
 };
 
-void lex(Token* tokens, size_t token_len, char *input, size_t input_len);
+void lex(Token* tokens, size_t token_len, String *input);
 
 #endif

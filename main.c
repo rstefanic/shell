@@ -297,7 +297,7 @@ int main() {
 
 		size_t token_len = 256;
 		Token *tokens = arena_alloc(&a, token_len * sizeof(Token));
-		lex(tokens, token_len, input.value, input.len);
+		lex(tokens, token_len, &input);
 
 		Token *tok = &tokens[0];
 		assert(tok->type != EMPTY);
