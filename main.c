@@ -16,7 +16,8 @@ enum BuiltinCommand {
 	NONE,
 	CD,
 	PWD,
-	EXIT
+	EXIT,
+	ECHO
 };
 
 BuiltinCommand try_parse_builtin(Token *tok) {
@@ -30,6 +31,8 @@ BuiltinCommand try_parse_builtin(Token *tok) {
 		return PWD;
 	} else if (memcmp(buf, "exit", 4) == 0) {
 		return EXIT;
+	} else if (memcmp(buf, "echo", 4) == 0) {
+		return ECHO;
 	}
 
 	return NONE;
@@ -138,6 +141,21 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 	}
 	case PWD: {
 		printf("%s\n", path);
+		break;
+	}
+	case ECHO: {
+		size_t i = 0; // *tokens start at 0
+
+		// TODO: Better bounds handling of the token sizes
+		while (tok.type != EMPTY && i < 255) {
+			char buf[1024] = {0};
+			eval_env_variables(tok.raw, tok.len, buf, 1024);
+			printf("%s ", buf);
+			tok = tokens[++i];
+		}
+
+		// Ending newline for the prompt to start on the next line.
+		printf("\n");
 		break;
 	}
 	default:
