@@ -107,6 +107,13 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 
 	switch(type) {
 	case CD: {
+		if (tok.type == EMPTY) {
+			// If there is no argument to CD, then send them HOME.
+			tok.type = LITERAL;
+			tok.raw = "~";
+			tok.len = 1;
+		}
+
 		// Set the path to the directory specified by the user if it's
 		// an absolute path. Zero out the remaining contents of the path
 		// buffer so that we avoid conflicts with the user's directory.
