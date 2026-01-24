@@ -22,17 +22,17 @@ enum BuiltinCommand {
 };
 
 bool compare_token(char* value, Token *tok) {
-	if (strlen(value) != tok->len) {
+	if (strlen(value) != tok->raw.len) {
 		return false;
 	}
 
-	return memcmp(tok->raw, value, tok->len) == 0;
+	return memcmp(tok->raw.value, value, tok->raw.len) == 0;
 }
 
 BuiltinCommand try_parse_builtin(Token *tok) {
 	char buf[256];
-	assert(tok->len < 256);
-	memcpy(buf, tok->raw, tok->len);
+	assert(tok->raw.len < 256);
+	memcpy(buf, tok->raw.value, tok->raw.len);
 
 	if (compare_token("cd", tok)) {
 		return CD;
@@ -111,25 +111,25 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 		if (tok.type == EMPTY) {
 			// If there is no argument to CD, then send them HOME.
 			tok.type = LITERAL;
-			tok.raw = "~";
-			tok.len = 1;
+			tok.raw.value = "~";
+			tok.raw.len = 1;
 		}
 
 		// Set the path to the directory specified by the user if it's
 		// an absolute path. Zero out the remaining contents of the path
 		// buffer so that we avoid conflicts with the user's directory.
-		if (tok.raw[0] == '/' || tok.raw[0] == '$') {
-			memcpy(path, tok.raw, tok.len);
-			memset(path+tok.len, 0, PATH_MAX-tok.len);
-		} else if (tok.raw[0] == '~') {
+		if (tok.raw.value[0] == '/' || tok.raw.value[0] == '$') {
+			memcpy(path, tok.raw.value, tok.raw.len);
+			memset(path+tok.raw.len, 0, PATH_MAX-tok.raw.len);
+		} else if (tok.raw.value[0] == '~') {
 			const char* home = getenv("HOME");
 			size_t homelen = strlen(home);
 			size_t totallen = homelen;
 			memcpy(path, home, homelen);
 
-			if (tok.len > 1) {
-				memcpy(&path[homelen], &tok.raw[1], tok.len - 1);
-				totallen += tok.len - 1;
+			if (tok.raw.len > 1) {
+				memcpy(&path[homelen], &tok.raw.value[1], tok.raw.len - 1);
+				totallen += tok.raw.len - 1;
 			}
 			memset(path+totallen, 0, PATH_MAX-totallen);
 		} else {
@@ -143,8 +143,8 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 				pathlen += 1;
 			}
 
-			assert((pathlen+tok.len) < PATH_MAX);
-			memcpy(&path[pathlen], tok.raw, tok.len);
+			assert((pathlen+tok.raw.len) < PATH_MAX);
+			memcpy(&path[pathlen], tok.raw.value, tok.raw.len);
 		}
 
 		eval_env_variables(path, strlen(path), final, PATH_MAX);
@@ -165,7 +165,7 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 		// TODO: Better bounds handling of the token sizes
 		while (tok.type != EMPTY && i < 255) {
 			char buf[1024] = {0};
-			eval_env_variables(tok.raw, tok.len, buf, 1024);
+			eval_env_variables(tok.raw.value, tok.raw.len, buf, 1024);
 			printf("%s ", buf);
 			tok = tokens[++i];
 		}
@@ -190,8 +190,8 @@ void print_tokens(Token *tokens, size_t token_len) {
 
 		printf("type: %d, raw: (%.*s)\n",
 			tok.type,
-			(int)tok.len,
-			tok.raw);
+			(int)tok.raw.len,
+			tok.raw.value);
 	}
 }
 
@@ -233,9 +233,9 @@ void execute_program(Token *tokens, size_t token_len) {
 		}
 
 		// Append the binary name to the path string
-		assert(bin_len+tok.len < PATH_MAX);
-		memcpy(&bin[bin_len], tok.raw, tok.len);
-		bin_len += tok.len;
+		assert(bin_len+tok.raw.len < PATH_MAX);
+		memcpy(&bin[bin_len], tok.raw.value, tok.raw.len);
+		bin_len += tok.raw.len;
 
 		struct stat file;
 		int res = stat(bin, &file);
@@ -253,13 +253,13 @@ void execute_program(Token *tokens, size_t token_len) {
 
 				// Ensure there's enough space in the bin buffer.
 				// +1 is added for the space to separate args.
-				assert((bin_len+next.len+1) < PATH_MAX);
+				assert((bin_len+next.raw.len+1) < PATH_MAX);
 
 				// Add a space to separate this argument from
 				// the last/program name and append it.
 				bin[bin_len] = ' ';
-				memcpy(&bin[bin_len+1], next.raw, next.len);
-				bin_len += next.len + 1;
+				memcpy(&bin[bin_len+1], next.raw.value, next.raw.len);
+				bin_len += next.raw.len + 1;
 			}
 
 			FILE *fp;
@@ -278,7 +278,7 @@ void execute_program(Token *tokens, size_t token_len) {
 		curr = strtok_r(NULL, ":", &saveptr);
 	}
 
-	printf("\"%.*s\": No such program\n", (int)tok.len, tok.raw);
+	printf("\"%.*s\": No such program\n", (int)tok.raw.len, tok.raw.value);
 }
 
 int main() {

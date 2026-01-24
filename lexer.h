@@ -14,8 +14,7 @@ typedef enum TokenType TokenType;
 
 struct Token {
 	TokenType	type;
-	char		*raw;	// pointer to the token's characters
-	size_t		len;	// size of the token's underlying string
+	String		raw;
 };
 typedef struct Token Token;
 
