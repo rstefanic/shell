@@ -4,9 +4,12 @@
 #include "string.h"
 
 String string_new(Arena *arena, size_t len) {
+	char *value = arena_alloc(arena, len);
+	assert(value != NULL);
+
 	return (String) {
 		.len = len,
-		.value = arena_alloc(arena, len)
+		.value = value
 	};
 }
 
