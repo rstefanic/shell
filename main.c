@@ -65,15 +65,15 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 			src_i--;
 
 			// Get the variable name from the environment and
-			// replace the variable name with the evaluated name
-			// in the final output string.
+			// replace the variable name in the destination string
+			// with the evaluated name.
 			char* var = getenv(varnamebuf);
 			if (var != NULL) {
 				j = 0;
 				c = var[j];
 				while (c != '\0') {
 					dest[dest_i++] = c;
-					c = var[j++];
+					c = var[++j];
 				}
 			}
 		} else {
