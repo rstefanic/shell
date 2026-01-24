@@ -67,7 +67,9 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 			size_t j = 0;
 
 			// Read the characters until we hit a non-alphanumeric.
-			while (c != '\0' && isalnum(c) && j < maxvarnamelen) {
+			while (c != '\0' && isalnum(c) && j < maxvarnamelen
+				&& src_i < srclen)
+			{
 				varnamebuf[j++] = c;
 				c = src[src_i++];
 			}
