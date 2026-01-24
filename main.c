@@ -20,18 +20,26 @@ enum BuiltinCommand {
 	ECHO
 };
 
+bool compare_token(char* value, Token *tok) {
+	if (strlen(value) != tok->len) {
+		return false;
+	}
+
+	return memcmp(tok->raw, value, tok->len) == 0;
+}
+
 BuiltinCommand try_parse_builtin(Token *tok) {
 	char buf[256];
 	assert(tok->len < 256);
 	memcpy(buf, tok->raw, tok->len);
 
-	if (memcmp(buf, "cd", 2) == 0) {
+	if (compare_token("cd", tok)) {
 		return CD;
-	} else if (memcmp(buf, "pwd", 3) == 0) {
+	} else if (compare_token("pwd", tok)) {
 		return PWD;
-	} else if (memcmp(buf, "exit", 4) == 0) {
+	} else if (compare_token("exit", tok)) {
 		return EXIT;
-	} else if (memcmp(buf, "echo", 4) == 0) {
+	} else if (compare_token("echo", tok)) {
 		return ECHO;
 	}
 
