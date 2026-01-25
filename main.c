@@ -113,7 +113,7 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 
 	switch(type) {
 	case CD: {
-		if (tok.type == EMPTY) {
+		if (tok.type == TOK_EOF) {
 			// If there is no argument to CD, then send them HOME.
 			tok.type = TOK_IDENT;
 			tok.raw.value = "~";
@@ -169,7 +169,7 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 		size_t i = 0; // *tokens start at 0
 
 		// TODO: Better bounds handling of the token sizes
-		while (tok.type != EMPTY && i < 255) {
+		while (tok.type != TOK_EOF && i < 255) {
 			char buf[1024] = {0};
 			eval_env_variables(tok.raw.value, tok.raw.len, buf, 1024);
 			printf("%s ", buf);
@@ -191,8 +191,7 @@ void print_tokens(Token *tokens, size_t token_len) {
 	for (i = 0; i < token_len; i++) {
 		Token tok = tokens[i];
 
-		// Stop as soon as we hit our first empty token.
-		if (tok.type == EMPTY)
+		if (tok.type == TOK_EOF)
 			break;
 
 		printf("type: %s, raw: [%.*s]\n",
@@ -211,7 +210,7 @@ void execute_program(Token *tokens, size_t token_len) {
 	char *curr;		// current path that's being checked
 
 	// Make sure this token isn't empty.
-	assert(tok.type != EMPTY);
+	assert(tok.type != TOK_EOF);
 
 	path = getenv("PATH");		// get the PATH directories
 	assert(path != NULL);
@@ -256,7 +255,7 @@ void execute_program(Token *tokens, size_t token_len) {
 			// to this program and pass them along.
 			for (size_t i = 1; i < token_len; i++) {
 				Token next = tokens[i];
-				if (next.type == EMPTY)
+				if (next.type == TOK_EOF)
 					break;
 
 				// Ensure there's enough space in the bin buffer.
@@ -308,7 +307,7 @@ int main() {
 		lex(tokens, token_len, &input);
 
 		Token *tok = &tokens[0];
-		assert(tok->type != EMPTY);
+		assert(tok->type != TOK_EOF);
 
 		if (tok->type == TOK_IDENT) {
 			BuiltinCommand cmd = try_parse_builtin(tok);

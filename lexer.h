@@ -7,7 +7,6 @@
 #include "string.h"
 
 enum TokenType {
-	EMPTY,
 	TOK_EOF,
 	TOK_LEFTPAREN,
 	TOK_RIGHTPAREN,

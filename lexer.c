@@ -147,8 +147,6 @@ void lex(Token* tokens, size_t token_len, String *input) {
 #ifdef DEBUG
 const char* debug_token_type_to_string(TokenType type) {
 	switch (type) {
-	case EMPTY:
-		return "EMPTY";
 	case TOK_EOF:
 		return "TOK_EOF";
 	case TOK_LEFTPAREN:
