@@ -115,7 +115,7 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 	case CD: {
 		if (tok.type == EMPTY) {
 			// If there is no argument to CD, then send them HOME.
-			tok.type = LITERAL;
+			tok.type = TOK_IDENT;
 			tok.raw.value = "~";
 			tok.raw.len = 1;
 		}
@@ -185,6 +185,7 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 	}
 }
 
+#if DEBUG
 void print_tokens(Token *tokens, size_t token_len) {
 	size_t i = 0;
 	for (i = 0; i < token_len; i++) {
@@ -194,12 +195,13 @@ void print_tokens(Token *tokens, size_t token_len) {
 		if (tok.type == EMPTY)
 			break;
 
-		printf("type: %d, raw: (%.*s)\n",
-			tok.type,
+		printf("type: %s, raw: [%.*s]\n",
+			debug_token_type_to_string(tok.type),
 			(int)tok.raw.len,
 			tok.raw.value);
 	}
 }
+#endif
 
 void execute_program(Token *tokens, size_t token_len) {
 	Token tok = tokens[0];
@@ -308,7 +310,7 @@ int main() {
 		Token *tok = &tokens[0];
 		assert(tok->type != EMPTY);
 
-		if (tok->type == LITERAL) {
+		if (tok->type == TOK_IDENT) {
 			BuiltinCommand cmd = try_parse_builtin(tok);
 			if (cmd == NONE) {
 			#if DEBUG
@@ -323,6 +325,10 @@ int main() {
 				// remaining tokens to be handled.
 				handle_builtin(&tokens[1], cmd);
 			}
+		} else {
+		#if DEBUG
+			print_tokens(tokens, token_len);
+		#endif
 		}
 	}
 

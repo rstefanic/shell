@@ -8,7 +8,12 @@
 
 enum TokenType {
 	EMPTY,
-	LITERAL
+	TOK_EOF,
+	TOK_LEFTPAREN,
+	TOK_RIGHTPAREN,
+	TOK_IDENT,
+	TOK_NUMBER,
+	TOK_STRING
 };
 typedef enum TokenType TokenType;
 
@@ -25,5 +30,9 @@ struct Lexer {
 };
 
 void lex(Token* tokens, size_t token_len, String *input);
+
+#ifdef DEBUG
+const char* debug_token_type_to_string(TokenType type);
+#endif
 
 #endif
