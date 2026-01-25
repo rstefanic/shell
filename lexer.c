@@ -100,7 +100,7 @@ void parse_identifier(Lexer *lexer, Token *tok) {
 	size_t len = 0;
 	while (!end(lexer)) {
 		char c = peek(lexer);
-		if (!isalnum(c) && c != '?' && c != '$' && c != '/')
+		if (!isalnum(c) && c != '?' && c != '$' && c != '/' && c != '-')
 			break;
 
 		advance(lexer);
