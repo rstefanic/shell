@@ -58,8 +58,6 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 		// If this is a dollar sign, then we're going to enter into
 		// reading this as a variable to be interpreted.
 		if (c == '$') {
-			c = src[src_i++]; // advance one to skip the '$'
-
 			// Setup varname buffer
 			size_t maxvarnamelen = 256;
 			char varnamebuf[maxvarnamelen];
@@ -67,16 +65,13 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 			size_t j = 0;
 
 			// Read the characters until we hit a non-alphanumeric.
-			while (c != '\0' && isalnum(c) && j < maxvarnamelen
-				&& src_i < srclen)
-			{
+			while (src_i < srclen) {
+				c = src[src_i];
+				if (!isalnum(c) || j >= maxvarnamelen)
+					break;
 				varnamebuf[j++] = c;
-				c = src[src_i++];
+				src_i++;
 			}
-
-			// Back up the pointer one to "unconsume" the last
-			// character that was not part of the variable.
-			src_i--;
 
 			// Get the variable name from the environment and
 			// replace the variable name in the destination string
