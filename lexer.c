@@ -132,7 +132,6 @@ void lex(Token* tokens, size_t token_len, String *input) {
 		if (c == '(' || c == ')') {
 			parse_paren(&lexer, tok);
 		} else if (c == '\"') {
-			printf("YEAH");
 			parse_string(&lexer, tok);
 		} else if (isdigit(c)) {
 			parse_number(&lexer, tok);
