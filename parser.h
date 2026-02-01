@@ -25,7 +25,7 @@ struct Expression {
 			Token value;
 		} atom;
 		struct {
-			Expression *children;
+			Expression *children[10];
 			size_t length;
 			size_t capacity;
 		} list;
