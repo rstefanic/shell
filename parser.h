@@ -47,8 +47,8 @@ struct Parser {
 Expression *parse(Expression *expressions, size_t expressions_len, Token *tokens, size_t tokens_len);
 
 // Token Parsing Helpers
-Token *peek(Parser *parser);
-Token *advance(Parser *parser);
+Token *parser_peek(Parser *parser);
+Token *parser_advance(Parser *parser);
 
 // Parser Expression allocators
 Expression *new_expression(Parser *parser);
