@@ -1,0 +1,109 @@
+#include <assert.h>
+
+#include "parser.h"
+#include "lexer.h"
+
+Expression *parse(Expression *expressions, size_t expressions_len, Token *tokens, size_t tokens_len) {
+	Parser parser = (Parser) {
+		.expressions_buf = expressions,
+		.expressions_len = expressions_len,
+		.expressions_pos = 0,
+		.tokens = tokens,
+		.tokens_len = tokens_len,
+		.tokens_pos = 0
+	};
+
+	Token *token = parser_peek(&parser);
+
+	if (token->type == TOK_LEFTPAREN) {
+		return parse_list(&parser);
+	} else {
+		return parse_atom(&parser);
+	}
+}
+
+Token *parser_peek(Parser *parser) {
+	return &parser->tokens[parser->tokens_pos];
+}
+
+Token *parser_advance(Parser *parser) {
+	if (parser->tokens_pos >= parser->tokens_len) {
+		return NULL;
+	}
+
+	Token *token = parser_peek(parser);
+	parser->tokens_pos += 1;
+	return token;
+}
+
+Expression *new_expression(Parser *parser) {
+	// Out of Memory check
+	if (parser->expressions_pos >= parser->expressions_len) {
+		return NULL;
+	}
+
+	Expression *expr = &parser->expressions_buf[parser->expressions_pos];
+	parser->expressions_pos += 1;
+	return expr;
+}
+
+Expression *parse_atom(Parser *parser) {
+	Token *token = parser_advance(parser); // consume the atom
+
+	Expression *expression = new_expression(parser);
+	assert(expression != NULL);
+	expression->type = EXPR_ATOM;
+	expression->data.atom.value = *token;
+
+	switch (token->type) {
+	case TOK_IDENT:
+		expression->data.atom.kind = ATOM_IDENT;
+		break;
+	case TOK_NUMBER:
+		expression->data.atom.kind = ATOM_NUMBER;
+		break;
+	case TOK_STRING:
+		expression->data.atom.kind = ATOM_STRING;
+		break;
+	default:
+		break;
+	};
+
+	return expression;
+}
+
+Expression *parse_list(Parser *parser) {
+	// Consume the TOK_LEFTPAREN and peek the next token.
+	parser_advance(parser);
+
+	// Start a new list expression
+	Expression *expr = new_expression(parser);
+	assert(expr != NULL);
+	expr->type = EXPR_LIST;
+	expr->data.list.length = 0;
+	expr->data.list.capacity = 10; // matches the size of `**children`
+
+	// TODO: Don't exceed grabbing tokens outside of bounds of token length.
+	while (true) {
+		// Ensure we have enough list capacity to parse this.
+		size_t len = expr->data.list.length;
+		assert(expr->data.list.capacity > len);
+
+		Token *token = parser_peek(parser);
+		switch (token->type) {
+		case TOK_EOF:
+			return expr;
+		case TOK_LEFTPAREN:
+			expr->data.list.children[len] = parse_list(parser);
+			break;
+		case TOK_RIGHTPAREN:
+			parser_advance(parser); // consume the ')'
+			return expr;
+		default:
+			expr->data.list.children[len] = parse_atom(parser);
+		}
+
+		expr->data.list.length += 1;
+	}
+}
+
