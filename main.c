@@ -10,6 +10,7 @@
 
 #include "lexer.h"
 #include "memory.h"
+#include "parser.h"
 #include "string.h"
 
 typedef enum BuiltinCommand BuiltinCommand;
@@ -284,7 +285,7 @@ void execute_program(Token *tokens, size_t token_len) {
 }
 
 int main() {
-	size_t backing_buffer_len = 1024 * 10; // 10kb
+	size_t backing_buffer_len = 1024 * 32; // 32kb
 	unsigned char backing_buffer[backing_buffer_len];
 
 	Arena a = {0};
@@ -299,7 +300,13 @@ int main() {
 
 		size_t token_len = 256;
 		Token *tokens = arena_alloc(&a, token_len * sizeof(Token));
+		assert(tokens != NULL);
 		lex(tokens, token_len, &input);
+
+		size_t expressions_len = 128;
+		Expression *expressions = arena_alloc(&a, expressions_len * sizeof(Expression));
+		assert(expressions != NULL);
+		parse(expressions, expressions_len, tokens, token_len);
 
 		Token *tok = &tokens[0];
 		assert(tok->type != TOK_EOF);
