@@ -13,13 +13,31 @@ Expression *parse(Expression *expressions, size_t expressions_len, Token *tokens
 		.tokens_pos = 0
 	};
 
-	Token *token = parser_peek(&parser);
+	// This is the root node of the AST.
+	Expression *program = new_expression(&parser);
+	assert(program != NULL);
+	program->type = EXPR_LIST;
+	program->data.list.length = 0;
+	program->data.list.capacity = 10;
 
-	if (token->type == TOK_LEFTPAREN) {
-		return parse_list(&parser);
-	} else {
-		return parse_atom(&parser);
+	// Keep parsing the program expressions until we hit EOF.
+	// NOTE: This is similar to the `parse_list` function since a program
+	// is also just a list of expressions.
+	while (parser_peek(&parser)->type != TOK_EOF) {
+		size_t len = program->data.list.length;
+		assert(len < program->data.list.capacity);
+
+		Token *token = parser_peek(&parser);
+		if (token->type == TOK_LEFTPAREN) {
+			program->data.list.children[len] = parse_list(&parser);
+		} else {
+			program->data.list.children[len] = parse_atom(&parser);
+		}
+
+		program->data.list.length += 1;
 	}
+
+	return program;
 }
 
 Token *parser_peek(Parser *parser) {
