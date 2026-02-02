@@ -30,18 +30,21 @@ bool compare_token(char* value, Token *tok) {
 	return memcmp(tok->raw.value, value, tok->raw.len) == 0;
 }
 
-BuiltinCommand try_parse_builtin(Token *tok) {
-	char buf[256];
-	assert(tok->raw.len < 256);
-	memcpy(buf, tok->raw.value, tok->raw.len);
+BuiltinCommand try_parse_builtin(Expression *expr) {
+	assert(expr->type == EXPR_ATOM);
+	Token tok = expr->data.atom.value;
 
-	if (compare_token("cd", tok)) {
+	char buf[256];
+	assert(tok.raw.len < 256);
+	memcpy(buf, tok.raw.value, tok.raw.len);
+
+	if (compare_token("cd", &tok)) {
 		return CD;
-	} else if (compare_token("pwd", tok)) {
+	} else if (compare_token("pwd", &tok)) {
 		return PWD;
-	} else if (compare_token("exit", tok)) {
+	} else if (compare_token("exit", &tok)) {
 		return EXIT;
-	} else if (compare_token("echo", tok)) {
+	} else if (compare_token("echo", &tok)) {
 		return ECHO;
 	}
 
@@ -96,8 +99,17 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 	}
 }
 
-void handle_builtin(Token *tokens, BuiltinCommand type) {
-	Token tok = tokens[0];
+void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
+	assert(builtin_expression->type == EXPR_LIST);
+
+	Token *tok = NULL;
+
+	// Skip the first ATOM since we know what it is by the `type` parameter.
+	size_t child_idx = 1;
+	if (builtin_expression->data.list.length > 1) {
+		Expression *curr = builtin_expression->data.list.children[child_idx];
+		tok = &curr->data.atom.value;
+	}
 
 	// Pull out the current working directory and store it in path. Some
 	// builtin commands need to manipulate the path so setting this to the
@@ -109,29 +121,29 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 
 	switch(type) {
 	case CD: {
-		if (tok.type == TOK_EOF) {
+		if (tok->type == TOK_EOF) {
 			// If there is no argument to CD, then send them HOME.
-			tok.type = TOK_IDENT;
-			tok.raw.value = "~";
-			tok.raw.len = 1;
+			tok->type = TOK_IDENT;
+			tok->raw.value = "~";
+			tok->raw.len = 1;
 		}
 
 		// Set the path to the directory specified by the user if it's
 		// an absolute path. Zero out the remaining contents of the path
 		// buffer so that we avoid conflicts with the user's directory.
-		if (tok.raw.value[0] == '/' || tok.raw.value[0] == '$') {
-			memcpy(path, tok.raw.value, tok.raw.len);
-			memset(path+tok.raw.len, 0, PATH_MAX-tok.raw.len);
-		} else if (tok.raw.value[0] == '~') {
+		if (tok->raw.value[0] == '/' || tok->raw.value[0] == '$') {
+			memcpy(path, tok->raw.value, tok->raw.len);
+			memset(path+tok->raw.len, 0, PATH_MAX-tok->raw.len);
+		} else if (tok->raw.value[0] == '~') {
 			const char* home = getenv("HOME");
 			assert(home != NULL);
 			size_t homelen = strlen(home);
 			size_t totallen = homelen;
 			memcpy(path, home, homelen);
 
-			if (tok.raw.len > 1) {
-				memcpy(&path[homelen], &tok.raw.value[1], tok.raw.len - 1);
-				totallen += tok.raw.len - 1;
+			if (tok->raw.len > 1) {
+				memcpy(&path[homelen], &tok->raw.value[1], tok->raw.len - 1);
+				totallen += tok->raw.len - 1;
 			}
 			memset(path+totallen, 0, PATH_MAX-totallen);
 		} else {
@@ -145,8 +157,8 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 				pathlen += 1;
 			}
 
-			assert((pathlen+tok.raw.len) < PATH_MAX);
-			memcpy(&path[pathlen], tok.raw.value, tok.raw.len);
+			assert((pathlen+tok->raw.len) < PATH_MAX);
+			memcpy(&path[pathlen], tok->raw.value, tok->raw.len);
 		}
 
 		eval_env_variables(path, strlen(path), final, PATH_MAX);
@@ -165,11 +177,13 @@ void handle_builtin(Token *tokens, BuiltinCommand type) {
 		size_t i = 0; // *tokens start at 0
 
 		// TODO: Better bounds handling of the token sizes
-		while (tok.type != TOK_EOF && i < 255) {
+		while (tok->type != TOK_EOF && i < builtin_expression->data.list.length) {
 			char buf[1024] = {0};
-			eval_env_variables(tok.raw.value, tok.raw.len, buf, 1024);
+			eval_env_variables(tok->raw.value, tok->raw.len, buf, 1024);
 			printf("%s ", buf);
-			tok = tokens[++i];
+			Expression *next = builtin_expression->data.list.children[++i];
+			assert(next->type == EXPR_ATOM); // TODO: handle lists
+			tok = &next->data.atom.value;
 		}
 
 		// Ending newline for the prompt to start on the next line.
@@ -198,8 +212,14 @@ void print_tokens(Token *tokens, size_t token_len) {
 }
 #endif
 
-void execute_program(Token *tokens, size_t token_len) {
-	Token tok = tokens[0];
+void execute_program(Expression *exec_node) {
+	assert(exec_node->type == EXPR_LIST);
+	size_t child_idx = 0;
+	Expression *child = exec_node->data.list.children[child_idx];
+
+	// TODO: Handle recursive nodes if child itself is a EXPR_LIST
+	assert(child->type == EXPR_ATOM);
+	Token tok = child->data.atom.value;
 	char pathbuf[1024];	// copy of the PATH environment variable
 	char *path;		// for the PATH environment variable
 	char *saveptr;		// to maintain context between strtok_r calls
@@ -247,10 +267,15 @@ void execute_program(Token *tokens, size_t token_len) {
 		// NOTE: Currently only opens the program in read mode.
 		// NOTE: 1kb buffer size to read program output is small.
 		if (res == 0) {
+			child_idx += 1;
+			Expression *curr = exec_node->data.list.children[child_idx];
+
 			// Piece together the rest of the tokens as arguments
 			// to this program and pass them along.
-			for (size_t i = 1; i < token_len; i++) {
-				Token next = tokens[i];
+			while (curr != NULL) {
+				// TODO: Handle evaluating EXPR_LIST in children
+				assert(curr->type == EXPR_ATOM);
+				Token next = curr->data.atom.value;
 				if (next.type == TOK_EOF)
 					break;
 
@@ -263,6 +288,11 @@ void execute_program(Token *tokens, size_t token_len) {
 				bin[bin_len] = ' ';
 				memcpy(&bin[bin_len+1], next.raw.value, next.raw.len);
 				bin_len += next.raw.len + 1;
+
+				// Advance the node
+				child_idx += 1;
+				assert(child_idx <= exec_node->data.list.length);
+				curr = exec_node->data.list.children[child_idx];
 			}
 
 			FILE *fp;
@@ -284,6 +314,32 @@ void execute_program(Token *tokens, size_t token_len) {
 	printf("\"%.*s\": No such program\n", (int)tok.raw.len, tok.raw.value);
 }
 
+void eval_expression(Expression *expressions) {
+	assert(expressions->type == EXPR_LIST);
+	Expression **children = expressions->data.list.children;
+	size_t child_idx = 0;
+	Expression *curr = children[child_idx];
+
+	// TODO: Check if this is an atom or a list.
+	while (curr != NULL) {
+		if (curr->type == EXPR_ATOM) {
+			BuiltinCommand cmd = try_parse_builtin(curr);
+			if (cmd == NONE) {
+				execute_program(expressions);
+			} else if (cmd == EXIT) {
+				break;
+			} else {
+				handle_builtin(expressions, cmd);
+			}
+
+			child_idx += 1;
+			curr = children[child_idx];
+		} else if (curr->type == EXPR_LIST) {
+			eval_expression(curr);
+		}
+	}
+}
+
 int main() {
 	size_t backing_buffer_len = 1024 * 32; // 32kb
 	unsigned char backing_buffer[backing_buffer_len];
@@ -302,35 +358,18 @@ int main() {
 		Token *tokens = arena_alloc(&a, token_len * sizeof(Token));
 		assert(tokens != NULL);
 		lex(tokens, token_len, &input);
+	#if DEBUG
+		print_tokens(tokens, token_len);
+	#endif
 
 		size_t expressions_len = 128;
 		Expression *expressions = arena_alloc(&a, expressions_len * sizeof(Expression));
 		assert(expressions != NULL);
 		parse(expressions, expressions_len, tokens, token_len);
 
-		Token *tok = &tokens[0];
-		assert(tok->type != TOK_EOF);
-
-		if (tok->type == TOK_IDENT) {
-			BuiltinCommand cmd = try_parse_builtin(tok);
-			if (cmd == NONE) {
-			#if DEBUG
-				print_tokens(tokens, token_len);
-			#endif
-				execute_program(tokens, token_len);
-			} else if (cmd == EXIT) {
-				break;
-			} else {
-				// We already know the first token was this
-				// builtin command, so we'll pass in the
-				// remaining tokens to be handled.
-				handle_builtin(&tokens[1], cmd);
-			}
-		} else {
-		#if DEBUG
-			print_tokens(tokens, token_len);
-		#endif
-		}
+		Expression *expr = &expressions[0];
+		assert(expr->type == EXPR_LIST);
+		eval_expression(expr);
 	}
 
 	return 0;
