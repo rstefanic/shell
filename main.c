@@ -331,12 +331,12 @@ void eval_expression(Expression *expressions) {
 			} else {
 				handle_builtin(expressions, cmd);
 			}
-
-			child_idx += 1;
-			curr = children[child_idx];
 		} else if (curr->type == EXPR_LIST) {
 			eval_expression(curr);
 		}
+
+		child_idx += 1;
+		curr = children[child_idx];
 	}
 }
 
