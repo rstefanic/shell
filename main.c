@@ -314,29 +314,35 @@ void execute_program(Expression *exec_node) {
 	printf("\"%.*s\": No such program\n", (int)tok.raw.len, tok.raw.value);
 }
 
-void eval_expression(Expression *expressions) {
+void eval_expressions(Expression *expressions) {
 	assert(expressions->type == EXPR_LIST);
 	Expression **children = expressions->data.list.children;
 	size_t child_idx = 0;
 	Expression *curr = children[child_idx];
 
-	// TODO: Check if this is an atom or a list.
-	while (curr != NULL) {
-		if (curr->type == EXPR_ATOM) {
-			BuiltinCommand cmd = try_parse_builtin(curr);
-			if (cmd == NONE) {
-				execute_program(expressions);
-			} else if (cmd == EXIT) {
-				break;
-			} else {
-				handle_builtin(expressions, cmd);
-			}
-		} else if (curr->type == EXPR_LIST) {
-			eval_expression(curr);
+	// Evaluate any sub expressions
+	while (curr != NULL && child_idx < expressions->data.list.length) {
+		// TODO: eval_expression will need to change to replace the
+		// EXPR_LIST node here and overwrite it. This means we will
+		// probably have to create a more complicated run time env.
+		if (curr->type == EXPR_LIST) {
+			eval_expressions(curr);
 		}
-
 		child_idx += 1;
 		curr = children[child_idx];
+	}
+
+	// Now evaluate this list as a whole
+	curr = children[0];
+	assert(curr != NULL);
+	assert(curr->type == EXPR_ATOM);
+	BuiltinCommand cmd = try_parse_builtin(curr);
+	if (cmd == NONE) {
+		execute_program(expressions);
+	} else if (cmd == EXIT) {
+		exit(0);
+	} else {
+		handle_builtin(expressions, cmd);
 	}
 }
 
@@ -369,7 +375,7 @@ int main() {
 
 		Expression *expr = &expressions[0];
 		assert(expr->type == EXPR_LIST);
-		eval_expression(expr);
+		eval_expressions(expr);
 	}
 
 	return 0;
