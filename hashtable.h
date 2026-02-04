@@ -9,6 +9,7 @@
 typedef struct Entry {
 	String key;
 	void* value;
+	struct Entry *next;
 } Entry;
 
 typedef struct HashTable {

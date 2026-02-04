@@ -1,5 +1,8 @@
+#include <stdbool.h>
+
 #include "hashtable.h"
 #include "memory.h"
+#include "string.h"
 
 HashTable *hashtable_create(Arena *a) {
 	HashTable *hashtable = arena_alloc(a, sizeof(HashTable));
@@ -9,14 +12,23 @@ HashTable *hashtable_create(Arena *a) {
 void hashtable_insert(HashTable *hashtable, Arena *a, String key, void *value) {
 	size_t idx = djb2_hash(key) % TABLE_SIZE;
 	Entry *entry = arena_alloc(a, sizeof(Entry));
-	hashtable->table[idx] = entry;
 	entry->key = key;
 	entry->value = value;
+	entry->next = hashtable->table[idx];
+	hashtable->table[idx] = entry;
 }
 
 Entry *hashtable_get(HashTable *hashtable, String key) {
 	size_t hash = djb2_hash(key) % TABLE_SIZE;
-	return hashtable->table[hash];
+	Entry *curr = hashtable->table[hash];
+	while (curr != NULL) {
+		if (string_compare(&curr->key, &key)) {
+			return curr;
+		}
+		curr = curr->next;
+	}
+
+	return NULL;
 }
 
 unsigned long djb2_hash(String key) {
