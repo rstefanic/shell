@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 
 #include "hashtable.h"
@@ -11,6 +12,18 @@ HashTable *hashtable_create(Arena *a) {
 
 void hashtable_insert(HashTable *hashtable, Arena *a, String key, void *value) {
 	size_t idx = djb2_hash(key) % TABLE_SIZE;
+
+	// If the key already exists, then overwrite its value.
+	Entry *curr = hashtable->table[idx];
+	while (curr != NULL) {
+		if (string_compare(&curr->key, &key)) {
+			curr->value = value;
+			return;
+		}
+		curr = curr->next;
+	}
+
+	// Otherwise create a new entry.
 	Entry *entry = arena_alloc(a, sizeof(Entry));
 	entry->key = key;
 	entry->value = value;
