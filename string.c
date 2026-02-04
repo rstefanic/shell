@@ -1,6 +1,6 @@
 #include <assert.h>
+#include <stdbool.h>
 
-#include "memory.h"
 #include "string.h"
 
 String string_new(Arena *arena, size_t len) {
@@ -21,4 +21,18 @@ String string_slice(String *src, size_t offset, size_t len) {
 		.len = len,
 		.value = src->value+offset
 	};
+}
+
+bool string_compare(String *a, String *b) {
+	if (a->len != b->len) {
+		return false;
+	}
+
+	for (size_t i = 0; i < a->len; i++) {
+		if (a->value[i] != b->value[i]) {
+			return false;
+		}
+	}
+
+	return true;
 }

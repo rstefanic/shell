@@ -20,4 +20,6 @@ String string_new(Arena *arena, size_t len);
 // len: Length of the slice taken from the `src` string.
 String string_slice(String *src, size_t offset, size_t len);
 
+bool string_compare(String *a, String *b);
+
 #endif
