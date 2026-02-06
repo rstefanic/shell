@@ -197,6 +197,8 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 
 #if DEBUG
 void print_tokens(Token *tokens, size_t token_len) {
+	printf("[DEBUG] TOKENS:\n");
+
 	size_t i = 0;
 	for (i = 0; i < token_len; i++) {
 		Token tok = tokens[i];
@@ -208,6 +210,55 @@ void print_tokens(Token *tokens, size_t token_len) {
 			debug_token_type_to_string(tok.type),
 			(int)tok.raw.len,
 			tok.raw.value);
+	}
+
+	printf("\n\n");
+}
+
+void print_expression(Expression *expr, size_t indent);
+void print_expressions(Expression *expressions, size_t expr_len, size_t indent) {
+	if (indent == 0) {
+		printf("[DEBUG] EXPRESSIONS:\n");
+	}
+
+	size_t i = 0;
+	for (i = 0; i < expr_len; i++) {
+		Expression expr = expressions[i];
+		print_expression(&expr, indent);
+	}
+}
+
+void tab(size_t n) {
+	for (int i = 0; i < n; i++) 
+		printf("\t");
+}
+
+void print_expression(Expression *expr, size_t indent) {
+	tab(indent);
+	if (expr->type == EXPR_ATOM) {
+		printf("type: EXPR_ATOM, ");
+		tab(indent);
+		switch (expr->data.atom.kind) {
+		case ATOM_IDENT:
+			printf("kind: ATOM_IDENT, ");
+			break;
+		case ATOM_NUMBER:
+			printf("kind: ATOM_NUMBER, ");
+			break;
+		case ATOM_STRING:
+			printf("kind: ATOM_STRING, ");
+			break;
+		}
+
+		Token tok = expr->data.atom.value;
+		printf("raw: [%.*s]\n", (int)tok.raw.len, tok.raw.value);
+	} else {
+		Expression *children = *(expr->data.list.children);
+		size_t len = expr->data.list.length;
+		for (size_t i = 0; i < len; i++) {
+			Expression child = children[i];
+			print_expression(&child, indent+1);
+		}
 	}
 }
 #endif
@@ -372,6 +423,9 @@ int main() {
 		Expression *expressions = arena_alloc(&a, expressions_len * sizeof(Expression));
 		assert(expressions != NULL);
 		parse(expressions, expressions_len, tokens, token_len);
+	#if DEBUG
+		print_expressions(expressions, expressions_len, 0);
+	#endif
 
 		Expression *expr = &expressions[0];
 		assert(expr->type == EXPR_LIST);
