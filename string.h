@@ -5,6 +5,8 @@
 
 #include "memory.h"
 
+#define STR_LIT(s) (String){ s, sizeof(s) - 1 }
+
 typedef struct String String;
 struct String {
 	char *value;
