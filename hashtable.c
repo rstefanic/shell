@@ -7,10 +7,11 @@
 
 HashTable *hashtable_create(Arena *a) {
 	HashTable *hashtable = arena_alloc(a, sizeof(HashTable));
+	hashtable->arena = a;
 	return hashtable;
 }
 
-void hashtable_insert(HashTable *hashtable, Arena *a, String key, void *value) {
+void hashtable_insert(HashTable *hashtable, String key, void *value) {
 	size_t idx = djb2_hash(key) % TABLE_SIZE;
 
 	// If the key already exists, then overwrite its value.
@@ -24,7 +25,7 @@ void hashtable_insert(HashTable *hashtable, Arena *a, String key, void *value) {
 	}
 
 	// Otherwise create a new entry.
-	Entry *entry = arena_alloc(a, sizeof(Entry));
+	Entry *entry = arena_alloc(hashtable->arena, sizeof(Entry));
 	entry->key = key;
 	entry->value = value;
 	entry->next = hashtable->table[idx];
