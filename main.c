@@ -8,14 +8,20 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "hashtable.h"
 #include "lexer.h"
 #include "memory.h"
 #include "parser.h"
 #include "string.h"
 
 #define ARENA_BYTES_LEN 1024 * 128 // 128kb
-unsigned char backing_buffer[ARENA_BYTES_LEN];
+unsigned char arena_backing_buffer[ARENA_BYTES_LEN];
 Arena arena = {0};
+
+#define SYMTABLE_ARENA_BYTES_LEN 1024 * 32 // 32kb
+unsigned char symtable_backing_buffer[SYMTABLE_ARENA_BYTES_LEN];
+Arena symtable_arena = {0};
+HashTable *symtable = {0};
 
 typedef enum BuiltinCommand BuiltinCommand;
 enum BuiltinCommand {
@@ -402,7 +408,9 @@ void eval_expressions(Expression *expressions) {
 }
 
 int main() {
-	arena_init(&arena, backing_buffer, ARENA_BYTES_LEN);
+	arena_init(&arena, arena_backing_buffer, ARENA_BYTES_LEN);
+	arena_init(&symtable_arena, symtable_backing_buffer, SYMTABLE_ARENA_BYTES_LEN);
+	symtable = hashtable_create(&symtable_arena);
 
 	for(;;) {
 		arena_free(&arena);

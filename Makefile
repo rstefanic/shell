@@ -3,7 +3,7 @@ CFLAGS = -Wall -g
 
 TARGET = shell
 
-OBJS = main.o memory.o lexer.o string.o parser.o
+OBJS = main.o memory.o lexer.o string.o parser.o hashtable.o
 
 run: $(TARGET)
 	@./$(TARGET)
@@ -25,6 +25,9 @@ lexer.o: lexer.c
 
 parser.o: parser.c
 	$(CC) $(CFLAGS) -c parser.c -o parser.o
+
+hashtable.o: hashtable.c
+	$(CC) $(CFLAGS) -c hashtable.c -o hashtable.o
 
 clean:
 	rm -f $(TARGET) $(OBJS)
