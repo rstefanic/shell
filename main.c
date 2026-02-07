@@ -145,14 +145,33 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 			memcpy(path, tok->raw.value, tok->raw.len);
 			memset(path+tok->raw.len, 0, PATH_MAX-tok->raw.len);
 		} else if (tok->raw.value[0] == '~') {
-			const char* home = getenv("HOME");
-			assert(home != NULL);
-			size_t homelen = strlen(home);
-			size_t totallen = homelen;
-			memcpy(path, home, homelen);
+			Entry *home_symbol = hashtable_get(symtable, STR_LIT("HOME"));
+			// If `$HOME` is NULL, first see if we can fetch in from env.
+			if (home_symbol == NULL) {
+				const char* env_home_tmp = getenv("HOME");
+				assert(env_home_tmp != NULL);
+
+				// Copy the value of the $HOME to the symtable.
+				String *home_value = arena_alloc(symtable->arena, sizeof(String));
+				char* env_home = arena_alloc(symtable->arena, strlen(env_home_tmp));
+				strcpy(env_home, env_home_tmp);
+				home_value->value = env_home;
+				home_value->len = strlen(env_home);
+
+				// Insert it and fetch it. If HOME is null
+				// again, then crash because we can't go `~`.
+				hashtable_insert(symtable, STR_LIT("HOME"), home_value);
+				home_symbol = hashtable_get(symtable, STR_LIT("HOME"));
+				assert(home_symbol != NULL);
+			}
+
+			String home = *((String*)home_symbol->value);
+			size_t totallen = home.len;
+
+			memcpy(path, home.value, home.len);
 
 			if (tok->raw.len > 1) {
-				memcpy(&path[homelen], &tok->raw.value[1], tok->raw.len - 1);
+				memcpy(&path[home.len], &tok->raw.value[1], tok->raw.len - 1);
 				totallen += tok->raw.len - 1;
 			}
 			memset(path+totallen, 0, PATH_MAX-totallen);
