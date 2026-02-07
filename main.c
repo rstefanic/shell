@@ -13,6 +13,10 @@
 #include "parser.h"
 #include "string.h"
 
+#define ARENA_BYTES_LEN 1024 * 128 // 128kb
+unsigned char backing_buffer[ARENA_BYTES_LEN];
+Arena arena = {0};
+
 typedef enum BuiltinCommand BuiltinCommand;
 enum BuiltinCommand {
 	NONE,
@@ -398,21 +402,17 @@ void eval_expressions(Expression *expressions) {
 }
 
 int main() {
-	size_t backing_buffer_len = 1024 * 32; // 32kb
-	unsigned char backing_buffer[backing_buffer_len];
-
-	Arena a = {0};
-	arena_init(&a, backing_buffer, backing_buffer_len);
+	arena_init(&arena, backing_buffer, ARENA_BYTES_LEN);
 
 	for(;;) {
-		arena_free(&a);
-		String input = string_new(&a, 256);
+		arena_free(&arena);
+		String input = string_new(&arena, 256);
 
 		printf("> ");
 		fgets(input.value, input.len, stdin);
 
 		size_t token_len = 256;
-		Token *tokens = arena_alloc(&a, token_len * sizeof(Token));
+		Token *tokens = arena_alloc(&arena, token_len * sizeof(Token));
 		assert(tokens != NULL);
 		lex(tokens, token_len, &input);
 	#if DEBUG
@@ -420,7 +420,7 @@ int main() {
 	#endif
 
 		size_t expressions_len = 128;
-		Expression *expressions = arena_alloc(&a, expressions_len * sizeof(Expression));
+		Expression *expressions = arena_alloc(&arena, expressions_len * sizeof(Expression));
 		assert(expressions != NULL);
 		parse(expressions, expressions_len, tokens, token_len);
 	#if DEBUG
