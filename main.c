@@ -61,7 +61,7 @@ BuiltinCommand try_parse_builtin(Expression *expr) {
 	return NONE;
 }
 
-void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
+void interpolate_string(char* src, size_t srclen, char* dest, size_t destlen) {
 	assert(srclen > 0);
 
 	size_t src_i = 0;
@@ -69,15 +69,14 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 	while (src_i < srclen) {
 		char c = src[src_i++];
 
-		// If this is a dollar sign, then we're going to enter into
-		// reading this as a variable to be interpreted.
+		// If this is a dollar sign, then we're going read the value
+		// as a variable to be interpolated.
 		if (c == '$') {
-			// Setup varname buffer
+			// Setup varname buffer to read the variable name.
 			size_t maxvarnamelen = 256;
 			char varnamebuf[maxvarnamelen];
 			memset(varnamebuf, 0, maxvarnamelen);
 			size_t j = 0;
-
 			// Read the characters until we hit a non-alphanumeric.
 			while (src_i < srclen) {
 				c = src[src_i];
@@ -87,18 +86,46 @@ void eval_env_variables(char* src, size_t srclen, char* dest, size_t destlen) {
 				src_i++;
 			}
 
+			// Get the variable from the symtable. If it's NULL,
+			// fallback to see if it's an environment variable
+			Entry *variable = hashtable_get(symtable, STR_LIT(varnamebuf));
+
+			// TODO: Consolidate new symtable creation with the `~`
+			//	 expansion from `handle_builtins`.
+			if (variable == NULL) {
+				const char *env_var_tmp = getenv(varnamebuf);
+				assert(env_var_tmp != NULL);
+
+				// Copy the value of the variable to the symtable.
+				String *new_var = arena_alloc(symtable->arena, sizeof(String));
+				char *env_var = arena_alloc(symtable->arena, strlen(env_var_tmp));
+				strcpy(env_var, env_var_tmp);
+				new_var->value = env_var;
+				new_var->len = strlen(env_var);
+
+				// Insert it and fetch it.
+				hashtable_insert(symtable, STR_LIT(varnamebuf), new_var);
+				variable = hashtable_get(symtable, STR_LIT(varnamebuf));
+			}
+
+			// If it's NULL at this point, then it's an error.
+			// TODO: Report error instead of crashing program.
+			if (variable == NULL) {
+				printf("Unknown value \"%s\"", varnamebuf);
+			}
+			assert(variable != NULL);
+
 			// Get the variable name from the environment and
 			// replace the variable name in the destination string
 			// with the evaluated name.
-			char* var = getenv(varnamebuf);
-			if (var != NULL) {
-				assert(dest_i + strlen(var) < destlen);
-				j = 0;
-				c = var[j];
-				while (c != '\0') {
-					dest[dest_i++] = c;
-					c = var[++j];
-				}
+			String *var = (String*)variable->value;
+			assert((dest_i+var->len) < destlen);
+
+			j = 0;
+			c = var->value[j];
+			while (j < var->len) {
+				dest[dest_i++] = c;
+				c = var->value[++j];
 			}
 		} else {
 			// Otherwise we'll simply copy the char to the dest str.
@@ -190,7 +217,7 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 			memcpy(&path[pathlen], tok->raw.value, tok->raw.len);
 		}
 
-		eval_env_variables(path, strlen(path), final, PATH_MAX);
+		interpolate_string(path, strlen(path), final, PATH_MAX);
 
 		int ok = chdir(final);
 		if (ok != 0) {
@@ -208,7 +235,7 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 		// TODO: Better bounds handling of the token sizes
 		while (i+1 < builtin_expression->data.list.length) {
 			char buf[1024] = {0};
-			eval_env_variables(tok->raw.value, tok->raw.len, buf, 1024);
+			interpolate_string(tok->raw.value, tok->raw.len, buf, 1024);
 			printf("%s ", buf);
 			Expression *next = builtin_expression->data.list.children[++i];
 			assert(next->type == EXPR_ATOM); // TODO: handle lists
