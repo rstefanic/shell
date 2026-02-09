@@ -206,7 +206,7 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 		size_t i = 0; // *tokens start at 0
 
 		// TODO: Better bounds handling of the token sizes
-		while (tok->type != TOK_EOF && i < builtin_expression->data.list.length) {
+		while (i+1 < builtin_expression->data.list.length) {
 			char buf[1024] = {0};
 			eval_env_variables(tok->raw.value, tok->raw.len, buf, 1024);
 			printf("%s ", buf);
