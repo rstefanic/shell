@@ -95,12 +95,21 @@ void parse_number(Lexer *lexer, Token *tok) {
 	tok->type = TOK_NUMBER;
 }
 
+bool is_ident_char(char c) {
+	return isalnum(c)
+		|| c == '?' 
+		|| c == '$'
+		|| c == '/'
+		|| c == '-'
+		|| c == '~';
+}
+
 void parse_identifier(Lexer *lexer, Token *tok) {
 	size_t start = lexer->ptr;
 	size_t len = 0;
 	while (!end(lexer)) {
 		char c = peek(lexer);
-		if (!isalnum(c) && c != '?' && c != '$' && c != '/' && c != '-' && c != '~')
+		if (!is_ident_char(c))
 			break;
 
 		advance(lexer);
@@ -135,7 +144,7 @@ void lex(Token* tokens, size_t token_len, String *input) {
 			parse_string(&lexer, tok);
 		} else if (isdigit(c)) {
 			parse_number(&lexer, tok);
-		} else {
+		else if (is_ident_char(c))
 			parse_identifier(&lexer, tok);
 		}
 
