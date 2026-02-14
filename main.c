@@ -469,7 +469,11 @@ int main() {
 		size_t token_len = 256;
 		Token *tokens = arena_alloc(&arena, token_len * sizeof(Token));
 		assert(tokens != NULL);
-		lex(tokens, token_len, &input);
+		bool ok = lex(tokens, token_len, &input);
+
+		if (!ok)
+			continue;
+
 	#if DEBUG
 		print_tokens(tokens, token_len);
 	#endif

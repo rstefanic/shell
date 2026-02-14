@@ -28,7 +28,7 @@ struct Lexer {
 	size_t	ptr;	// pointer to current character
 };
 
-void lex(Token* tokens, size_t token_len, String *input);
+bool lex(Token* tokens, size_t token_len, String *input);
 
 #ifdef DEBUG
 const char* debug_token_type_to_string(TokenType type);

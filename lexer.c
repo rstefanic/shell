@@ -120,7 +120,7 @@ void parse_identifier(Lexer *lexer, Token *tok) {
 	tok->type = TOK_IDENT;
 }
 
-void lex(Token* tokens, size_t token_len, String *input) {
+bool lex(Token* tokens, size_t token_len, String *input) {
 	Lexer lexer = {
 		.buf = input,
 		.ptr = 0,
@@ -138,18 +138,23 @@ void lex(Token* tokens, size_t token_len, String *input) {
 			continue;
 		}
 
-		if (c == '(' || c == ')') {
+		if (c == '(' || c == ')')
 			parse_paren(&lexer, tok);
-		} else if (c == '\"') {
+		else if (c == '\"')
 			parse_string(&lexer, tok);
-		} else if (isdigit(c)) {
+		else if (isdigit(c))
 			parse_number(&lexer, tok);
 		else if (is_ident_char(c))
 			parse_identifier(&lexer, tok);
+		else {
+			printf("Unrecognized token: \"%c\"\n", c);
+			return false;
 		}
 
 		i += 1;
 	}
+
+	return true;
 }
 
 #ifdef DEBUG
