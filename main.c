@@ -442,7 +442,10 @@ void eval_expressions(Expression *expressions) {
 
 	// Now evaluate this list as a whole
 	curr = children[0];
-	assert(curr != NULL);
+	if (curr == NULL) {
+		return;
+	}
+
 	assert(curr->type == EXPR_ATOM);
 	BuiltinCommand cmd = try_parse_builtin(curr);
 	if (cmd == NONE) {
