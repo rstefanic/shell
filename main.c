@@ -230,16 +230,17 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 		break;
 	}
 	case ECHO: {
-		size_t i = 0; // *tokens start at 0
+		for (size_t i = 0; i < builtin_expression->data.list.length; i++) {
+			Expression *next = builtin_expression->data.list.children[i];
+			if (next == NULL)
+				break;
 
-		// TODO: Better bounds handling of the token sizes
-		while (i+1 < builtin_expression->data.list.length) {
+			assert(next->type == EXPR_ATOM); // TODO: handle lists
+			tok = &next->data.atom.value;
+
 			char buf[1024] = {0};
 			interpolate_string(tok->raw.value, tok->raw.len, buf, 1024);
 			printf("%s ", buf);
-			Expression *next = builtin_expression->data.list.children[++i];
-			assert(next->type == EXPR_ATOM); // TODO: handle lists
-			tok = &next->data.atom.value;
 		}
 
 		// Ending newline for the prompt to start on the next line.
