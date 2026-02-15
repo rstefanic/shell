@@ -501,7 +501,15 @@ int main() {
 		cleanup:
 		if (log_context_count_by(LOG_LEVEL_INFO) > 0) {
 			String messages = log_context_get_messages(LOG_LEVEL_INFO);
-			printf("=== MEMORY USAGE ===\n%.*s\n", messages.len, messages.value);
+			char *green_foreground = "\033[38;5;46m";
+			char *reset_colors = "\033[0m";
+			printf(
+				"%s=== MEMORY USAGE ===\n%.*s\n%s",
+				green_foreground,
+				messages.len,
+				messages.value,
+				reset_colors
+			);
 		}
 
 		log_context_end();
