@@ -2,6 +2,7 @@
 #define _STRINGH_
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "base.h"
 #include "memory.h"
@@ -15,6 +16,9 @@ struct String {
 };
 
 String string_new(Arena *arena, u32 len);
+
+// Copies the string into a new arena.
+String string_copy(Arena *arena, String existing);
 
 // Creates a slice from the source string. The underlying string is not copied.
 // The slice returned should not be used after the source string has been freed.

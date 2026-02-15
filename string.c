@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "string.h"
 
@@ -11,6 +12,12 @@ String string_new(Arena *arena, u32 len) {
 		.len = len,
 		.value = value
 	};
+}
+
+String string_copy(Arena *arena, String existing) {
+	String new = string_new(arena, existing.len);
+	memcpy(new.value, existing.value, new.len);
+	return new;
 }
 
 String string_slice(String *src, u32 offset, u32 len) {
