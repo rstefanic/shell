@@ -500,16 +500,29 @@ int main() {
 
 		cleanup:
 		if (log_context_count_by(LOG_LEVEL_INFO) > 0) {
+			// Print the Info Report section at the top of the
+			// terminal. Save the cursor position, jump to the top,
+			// print the section, and restore the current cursor.
 			String messages = log_context_get_messages(LOG_LEVEL_INFO);
+			printf("\33[s");	// save the cursor position
+			printf("\033[H");	// put the cursor top left
+			printf("\033[K");	// clear to end of line
+
 			char *green_foreground = "\033[38;5;46m";
+			printf("%s=== INFO REPORT ===\033[K\n", green_foreground);
+			for (u32 i = 0; i < messages.len; i++) {
+				char c = messages.value[i];
+				if (c == '\n') {
+					printf("\033[K"); // clear to end of line
+				}
+				putchar(c);
+			}
 			char *reset_colors = "\033[0m";
-			printf(
-				"%s=== MEMORY USAGE ===\n%.*s\n%s",
-				green_foreground,
-				messages.len,
-				messages.value,
-				reset_colors
-			);
+			printf("=== END INFO REPORT ===\033[K%s\n", reset_colors);
+			printf("\033[u");	// restore cursor position
+
+			// TODO: Fix issue on `clear` screen where user can
+			//	overwrite this info report section.
 		}
 
 		log_context_end();
