@@ -11,6 +11,7 @@
 #include "base.h"
 #include "hashtable.h"
 #include "lexer.h"
+#include "log.h"
 #include "memory.h"
 #include "parser.h"
 #include "string.h"
@@ -464,6 +465,8 @@ int main() {
 	symtable = hashtable_create(&symtable_arena);
 
 	for(;;) {
+		log_context_start();
+
 		arena_free(&arena);
 		String input = string_new(&arena, 256);
 
@@ -473,10 +476,11 @@ int main() {
 		u32 token_len = 256;
 		Token *tokens = arena_alloc(&arena, token_len * sizeof(Token));
 		assert(tokens != NULL);
-		bool ok = lex(tokens, token_len, &input);
 
-		if (!ok)
-			continue;
+		bool ok = lex(tokens, token_len, &input);
+		if (!ok) {
+			goto cleanup;
+		}
 
 	#if DEBUG
 		print_tokens(tokens, token_len);
@@ -493,6 +497,14 @@ int main() {
 		Expression *expr = &expressions[0];
 		assert(expr->type == EXPR_LIST);
 		eval_expressions(expr);
+
+		cleanup:
+		if (log_context_count_by(LOG_LEVEL_INFO) > 0) {
+			String messages = log_context_get_messages(LOG_LEVEL_INFO);
+			printf("=== MEMORY USAGE ===\n%.*s\n", messages.len, messages.value);
+		}
+
+		log_context_end();
 	}
 
 	return 0;

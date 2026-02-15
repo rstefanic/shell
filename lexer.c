@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "lexer.h"
+#include "log.h"
 
 bool end(Lexer *lexer) {
 	char c = lexer->buf->value[lexer->ptr];
@@ -153,6 +155,13 @@ bool lex(Token* tokens, u32 token_len, String *input) {
 
 		i += 1;
 	}
+
+	char buf[256] = { 0 };
+	sprintf(buf, "(lexer) lex memory used: %lu bytes\n", sizeof(Token) * i);
+	log_emit_message(LOG_LEVEL_INFO, (String) {
+		.value = buf,
+		.len = strlen(buf)
+	});
 
 	return true;
 }

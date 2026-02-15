@@ -1,7 +1,9 @@
 #include <assert.h>
+#include <string.h>
 
 #include "parser.h"
 #include "lexer.h"
+#include "log.h"
 
 Expression *parse(Expression *expressions, u32 expressions_len, Token *tokens, u32 tokens_len) {
 	Parser parser = (Parser) {
@@ -36,6 +38,17 @@ Expression *parse(Expression *expressions, u32 expressions_len, Token *tokens, u
 
 		program->data.list.length += 1;
 	}
+
+	char buf[256] = { 0 };
+	sprintf(
+		buf,
+		"(parser) parse memory used: %lu bytes\n",
+		sizeof(Expression) * parser.expressions_pos
+	);
+	log_emit_message(LOG_LEVEL_INFO, (String) {
+		.value = buf,
+		.len = strlen(buf)
+	});
 
 	return program;
 }
