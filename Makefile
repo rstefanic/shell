@@ -3,7 +3,7 @@ CFLAGS = -Wall -g -fsanitize=address
 
 TARGET = shell
 
-OBJS = main.o memory.o lexer.o string.o parser.o hashtable.o
+OBJS = main.o memory.o lexer.o string.o parser.o hashtable.o log.o
 
 run: $(TARGET)
 	@./$(TARGET)
@@ -28,6 +28,9 @@ parser.o: parser.c
 
 hashtable.o: hashtable.c
 	$(CC) $(CFLAGS) -c hashtable.c -o hashtable.o
+
+log.o: log.c
+	$(CC) $(CFLAGS) -c log.c -o log.o
 
 clean:
 	rm -f $(TARGET) $(OBJS)
