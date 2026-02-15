@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "base.h"
 #include "lexer.h"
 
 typedef enum ExpressionType {
@@ -26,8 +27,8 @@ struct Expression {
 		} atom;
 		struct {
 			Expression *children[10];
-			size_t length;
-			size_t capacity;
+			u32 length;
+			u32 capacity;
 		} list;
 	} data;
 };
@@ -35,16 +36,16 @@ struct Expression {
 typedef struct Parser Parser;
 struct Parser {
 	Expression *expressions_buf;
-	size_t expressions_len;
-	size_t expressions_pos;
+	u32 expressions_len;
+	u32 expressions_pos;
 
 	Token *tokens;
-	size_t tokens_len;
-	size_t tokens_pos;
+	u32 tokens_len;
+	u32 tokens_pos;
 };
 
 // Primary parsing function
-Expression *parse(Expression *expressions, size_t expressions_len, Token *tokens, size_t tokens_len);
+Expression *parse(Expression *expressions, u32 expressions_len, Token *tokens, u32 tokens_len);
 
 // Token Parsing Helpers
 Token *parser_peek(Parser *parser);

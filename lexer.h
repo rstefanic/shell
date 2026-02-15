@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include "base.h"
 #include "memory.h"
 #include "string.h"
 
@@ -25,10 +26,10 @@ typedef struct Token Token;
 typedef struct Lexer Lexer;
 struct Lexer {
 	String *buf;
-	size_t	ptr;	// pointer to current character
+	u32	ptr;	// pointer to current character
 };
 
-bool lex(Token* tokens, size_t token_len, String *input);
+bool lex(Token* tokens, u32 token_len, String *input);
 
 #ifdef DEBUG
 const char* debug_token_type_to_string(TokenType type);

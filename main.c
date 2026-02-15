@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "base.h"
 #include "hashtable.h"
 #include "lexer.h"
 #include "memory.h"
@@ -61,11 +62,11 @@ BuiltinCommand try_parse_builtin(Expression *expr) {
 	return NONE;
 }
 
-void interpolate_string(char* src, size_t srclen, char* dest, size_t destlen) {
+void interpolate_string(char* src, u32 srclen, char* dest, u32 destlen) {
 	assert(srclen > 0);
 
-	size_t src_i = 0;
-	size_t dest_i = 0;
+	u32 src_i = 0;
+	u32 dest_i = 0;
 	while (src_i < srclen) {
 		char c = src[src_i++];
 
@@ -73,10 +74,10 @@ void interpolate_string(char* src, size_t srclen, char* dest, size_t destlen) {
 		// as a variable to be interpolated.
 		if (c == '$') {
 			// Setup varname buffer to read the variable name.
-			size_t maxvarnamelen = 256;
+			u32 maxvarnamelen = 256;
 			char varnamebuf[maxvarnamelen];
 			memset(varnamebuf, 0, maxvarnamelen);
-			size_t j = 0;
+			u32 j = 0;
 			// Read the characters until we hit a non-alphanumeric.
 			while (src_i < srclen) {
 				c = src[src_i];
@@ -142,7 +143,7 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 	Token *tok = NULL;
 
 	// Skip the first ATOM since we know what it is by the `type` parameter.
-	size_t child_idx = 1;
+	u32 child_idx = 1;
 	if (builtin_expression->data.list.length > 1) {
 		Expression *curr = builtin_expression->data.list.children[child_idx];
 		tok = &curr->data.atom.value;
@@ -193,7 +194,7 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 			}
 
 			String home = *((String*)home_symbol->value);
-			size_t totallen = home.len;
+			u32 totallen = home.len;
 
 			memcpy(path, home.value, home.len);
 
@@ -230,7 +231,7 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 		break;
 	}
 	case ECHO: {
-		for (size_t i = 0; i < builtin_expression->data.list.length; i++) {
+		for (u32 i = 0; i < builtin_expression->data.list.length; i++) {
 			Expression *next = builtin_expression->data.list.children[i];
 			if (next == NULL)
 				break;
@@ -253,10 +254,10 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 }
 
 #if DEBUG
-void print_tokens(Token *tokens, size_t token_len) {
+void print_tokens(Token *tokens, u32 token_len) {
 	printf("[DEBUG] TOKENS:\n");
 
-	size_t i = 0;
+	u32 i = 0;
 	for (i = 0; i < token_len; i++) {
 		Token tok = tokens[i];
 
@@ -272,25 +273,25 @@ void print_tokens(Token *tokens, size_t token_len) {
 	printf("\n\n");
 }
 
-void print_expression(Expression *expr, size_t indent);
-void print_expressions(Expression *expressions, size_t expr_len, size_t indent) {
+void print_expression(Expression *expr, u32 indent);
+void print_expressions(Expression *expressions, u32 expr_len, u32 indent) {
 	if (indent == 0) {
 		printf("[DEBUG] EXPRESSIONS:\n");
 	}
 
-	size_t i = 0;
+	u32 i = 0;
 	for (i = 0; i < expr_len; i++) {
 		Expression expr = expressions[i];
 		print_expression(&expr, indent);
 	}
 }
 
-void tab(size_t n) {
+void tab(u32 n) {
 	for (int i = 0; i < n; i++) 
 		printf("\t");
 }
 
-void print_expression(Expression *expr, size_t indent) {
+void print_expression(Expression *expr, u32 indent) {
 	tab(indent);
 	if (expr->type == EXPR_ATOM) {
 		printf("type: EXPR_ATOM, ");
@@ -311,8 +312,8 @@ void print_expression(Expression *expr, size_t indent) {
 		printf("raw: [%.*s]\n", (int)tok.raw.len, tok.raw.value);
 	} else {
 		Expression *children = *(expr->data.list.children);
-		size_t len = expr->data.list.length;
-		for (size_t i = 0; i < len; i++) {
+		u32 len = expr->data.list.length;
+		for (u32 i = 0; i < len; i++) {
 			Expression child = children[i];
 			print_expression(&child, indent+1);
 		}
@@ -322,7 +323,7 @@ void print_expression(Expression *expr, size_t indent) {
 
 void execute_program(Expression *exec_node) {
 	assert(exec_node->type == EXPR_LIST);
-	size_t child_idx = 0;
+	u32 child_idx = 0;
 	Expression *child = exec_node->data.list.children[child_idx];
 
 	// TODO: Handle recursive nodes if child itself is a EXPR_LIST
@@ -351,8 +352,8 @@ void execute_program(Expression *exec_node) {
 	// Look through each path to see if the program exists in one of them.
 	while (curr != NULL) {
 		char bin[PATH_MAX] = {0};
-		size_t curr_len = strlen(curr);
-		size_t bin_len = curr_len;
+		u32 curr_len = strlen(curr);
+		u32 bin_len = curr_len;
 
 		// Copy the PATH directory bin path.
 		memcpy(bin, curr, curr_len);
@@ -425,7 +426,7 @@ void execute_program(Expression *exec_node) {
 void eval_expressions(Expression *expressions) {
 	assert(expressions->type == EXPR_LIST);
 	Expression **children = expressions->data.list.children;
-	size_t child_idx = 0;
+	u32 child_idx = 0;
 	Expression *curr = children[child_idx];
 
 	// Evaluate any sub expressions
@@ -469,7 +470,7 @@ int main() {
 		printf("> ");
 		fgets(input.value, input.len, stdin);
 
-		size_t token_len = 256;
+		u32 token_len = 256;
 		Token *tokens = arena_alloc(&arena, token_len * sizeof(Token));
 		assert(tokens != NULL);
 		bool ok = lex(tokens, token_len, &input);
@@ -481,7 +482,7 @@ int main() {
 		print_tokens(tokens, token_len);
 	#endif
 
-		size_t expressions_len = 128;
+		u32 expressions_len = 128;
 		Expression *expressions = arena_alloc(&arena, expressions_len * sizeof(Expression));
 		assert(expressions != NULL);
 		parse(expressions, expressions_len, tokens, token_len);

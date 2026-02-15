@@ -4,7 +4,7 @@
 
 #include "memory.h"
 
-uintptr_t align_forward(uintptr_t ptr, size_t align) {
+uintptr_t align_forward(uintptr_t ptr, u32 align) {
 	uintptr_t p, a, diff;
 
 	// Calculate the number of bytes we currently are from our alignment.
@@ -21,7 +21,7 @@ uintptr_t align_forward(uintptr_t ptr, size_t align) {
 	return p;
 }
 
-void *arena_alloc(Arena *a, size_t size) {
+void *arena_alloc(Arena *a, u32 size) {
 	uintptr_t alignment = 2 * sizeof(void *); // machine's word size
 
 	// Get the address of the current offset from the buffer, align it
@@ -43,7 +43,7 @@ void *arena_alloc(Arena *a, size_t size) {
 	return ptr;
 }
 
-void arena_init(Arena *a, void *backing_buffer, size_t backing_buffer_len) {
+void arena_init(Arena *a, void *backing_buffer, u32 backing_buffer_len) {
 	a->buf = (unsigned char *)backing_buffer;
 	a->len = backing_buffer_len;
 	a->curr_offset = 0;

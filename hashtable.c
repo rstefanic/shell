@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#include "base.h"
 #include "hashtable.h"
 #include "memory.h"
 #include "string.h"
@@ -12,7 +13,7 @@ HashTable *hashtable_create(Arena *a) {
 }
 
 void hashtable_insert(HashTable *hashtable, String key, void *value) {
-	size_t idx = djb2_hash(key) % TABLE_SIZE;
+	u32 idx = djb2_hash(key) % TABLE_SIZE;
 
 	// If the key already exists, then overwrite its value.
 	Entry *curr = hashtable->table[idx];
@@ -33,7 +34,7 @@ void hashtable_insert(HashTable *hashtable, String key, void *value) {
 }
 
 Entry *hashtable_get(HashTable *hashtable, String key) {
-	size_t hash = djb2_hash(key) % TABLE_SIZE;
+	u32 hash = djb2_hash(key) % TABLE_SIZE;
 	Entry *curr = hashtable->table[hash];
 	while (curr != NULL) {
 		if (string_compare(&curr->key, &key)) {
@@ -47,7 +48,7 @@ Entry *hashtable_get(HashTable *hashtable, String key) {
 
 unsigned long djb2_hash(String key) {
 	unsigned long hash = 5381; // magic starting value
-	for (size_t i = 0; i < key.len; i++) {
+	for (u32 i = 0; i < key.len; i++) {
 		char c = key.value[i];
 		hash = hash * 33 + c;
 	}

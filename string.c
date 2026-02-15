@@ -3,7 +3,7 @@
 
 #include "string.h"
 
-String string_new(Arena *arena, size_t len) {
+String string_new(Arena *arena, u32 len) {
 	char *value = arena_alloc(arena, len);
 	assert(value != NULL);
 
@@ -13,7 +13,7 @@ String string_new(Arena *arena, size_t len) {
 	};
 }
 
-String string_slice(String *src, size_t offset, size_t len) {
+String string_slice(String *src, u32 offset, u32 len) {
 	assert(len <= src->len);
 	assert(offset <= src->len);
 
@@ -28,7 +28,7 @@ bool string_compare(String *a, String *b) {
 		return false;
 	}
 
-	for (size_t i = 0; i < a->len; i++) {
+	for (u32 i = 0; i < a->len; i++) {
 		if (a->value[i] != b->value[i]) {
 			return false;
 		}
