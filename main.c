@@ -27,11 +27,11 @@ HashTable *symtable = {0};
 
 typedef enum BuiltinCommand BuiltinCommand;
 enum BuiltinCommand {
-	NONE,
-	CD,
-	PWD,
-	EXIT,
-	ECHO
+	BC_NONE,
+	BC_CD,
+	BC_PWD,
+	BC_EXIT,
+	BC_ECHO
 };
 
 bool compare_token(char* value, Token *tok) {
@@ -51,16 +51,16 @@ BuiltinCommand try_parse_builtin(Expression *expr) {
 	memcpy(buf, tok.raw.value, tok.raw.len);
 
 	if (compare_token("cd", &tok)) {
-		return CD;
+		return BC_CD;
 	} else if (compare_token("pwd", &tok)) {
-		return PWD;
+		return BC_PWD;
 	} else if (compare_token("exit", &tok)) {
-		return EXIT;
+		return BC_EXIT;
 	} else if (compare_token("echo", &tok)) {
-		return ECHO;
+		return BC_ECHO;
 	}
 
-	return NONE;
+	return BC_NONE;
 }
 
 void interpolate_string(char* src, u32 srclen, char* dest, u32 destlen) {
@@ -159,7 +159,7 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 	assert(res != NULL);
 
 	switch(type) {
-	case CD: {
+	case BC_CD: {
 		if (tok->type == TOK_EOF) {
 			// If there is no argument to CD, then send them HOME.
 			tok->type = TOK_IDENT;
@@ -227,11 +227,11 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 		}
 		break;
 	}
-	case PWD: {
+	case BC_PWD: {
 		printf("%s\n", path);
 		break;
 	}
-	case ECHO: {
+	case BC_ECHO: {
 		for (u32 i = 0; i < builtin_expression->data.list.length; i++) {
 			Expression *next = builtin_expression->data.list.children[i];
 			if (next == NULL)
@@ -450,9 +450,9 @@ void eval_expressions(Expression *expressions) {
 
 	assert(curr->type == EXPR_ATOM);
 	BuiltinCommand cmd = try_parse_builtin(curr);
-	if (cmd == NONE) {
+	if (cmd == BC_NONE) {
 		execute_program(expressions);
-	} else if (cmd == EXIT) {
+	} else if (cmd == BC_EXIT) {
 		exit(0);
 	} else {
 		handle_builtin(expressions, cmd);
