@@ -14,4 +14,8 @@ typedef uint64_t u64;
 typedef float f32;
 typedef double f64;
 
+#define KB(n) (((u64)(n)) << 10)
+#define MB(n) (((u64)(n)) << 20)
+#define GB(n) (((u64)(n)) << 30)
+
 #endif
