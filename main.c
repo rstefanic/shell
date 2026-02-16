@@ -17,13 +17,6 @@
 #include "parser.h"
 #include "string.h"
 
-#define ARENA_BYTES_LEN 1024 * 128 // 128kb
-unsigned char arena_backing_buffer[ARENA_BYTES_LEN];
-Arena arena = {0};
-
-#define SYMTABLE_ARENA_BYTES_LEN 1024 * 32 // 32kb
-unsigned char symtable_backing_buffer[SYMTABLE_ARENA_BYTES_LEN];
-Arena symtable_arena = {0};
 HashTable *symtable = {0};
 
 typedef enum {
@@ -505,21 +498,34 @@ void minimum_cursor_row_start(u8 min_row) {
 }
 
 int main() {
-	arena_init(&arena, arena_backing_buffer, ARENA_BYTES_LEN);
-	arena_init(&symtable_arena, symtable_backing_buffer, SYMTABLE_ARENA_BYTES_LEN);
+	unsigned char perm_arena_backing_buffer[MB(2)];
+	Arena perm_arena = {0};
+	arena_init(&perm_arena, perm_arena_backing_buffer, MB(2));
+	assert(perm_arena.buf != NULL);
+
+	// Configure global symbol table.
+	Arena symtable_arena = {0};
+	arena_init(&symtable_arena, arena_alloc(&perm_arena, KB(32)), KB(32));
+	assert(symtable_arena.buf != NULL);
 	symtable = hashtable_create(&symtable_arena);
 
+	// Setup arena for the frame.
+	Arena frame_arena = {0};
+	arena_init(&frame_arena, arena_alloc(&perm_arena, KB(128)), KB(128));
+	assert(frame_arena.buf != NULL);
+
+	// Main repl. Each run of this is considered a "frame".
 	for(;;) {
 		log_context_start();
 
-		arena_free(&arena);
-		String input = string_new(&arena, 256);
+		arena_free(&frame_arena);
+		String input = string_new(&frame_arena, 256);
 
 		printf("> ");
 		fgets(input.value, input.len, stdin);
 
 		u32 token_len = 256;
-		Token *tokens = arena_alloc(&arena, token_len * sizeof(Token));
+		Token *tokens = arena_alloc(&frame_arena, token_len * sizeof(Token));
 		assert(tokens != NULL);
 
 		bool ok = lex(tokens, token_len, &input);
@@ -532,7 +538,7 @@ int main() {
 	#endif
 
 		u32 expressions_len = 128;
-		Expression *expressions = arena_alloc(&arena, expressions_len * sizeof(Expression));
+		Expression *expressions = arena_alloc(&frame_arena, expressions_len * sizeof(Expression));
 		assert(expressions != NULL);
 		parse(expressions, expressions_len, tokens, token_len);
 	#if DEBUG
