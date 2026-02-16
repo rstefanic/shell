@@ -1,5 +1,12 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -g -O0 -fsanitize=address
+CFLAGS = -Wall -Wextra -pedantic
+DEBUG_CFLAGS = -g -O0 -fsanitize=address
+
+config ?= debug
+
+ifeq ($(config), debug)
+	CFLAGS += $(DEBUG_CFLAGS)
+endif
 
 TARGET = shell
 
