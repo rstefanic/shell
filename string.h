@@ -7,15 +7,15 @@
 #include "base.h"
 #include "memory.h"
 
-#define STR_LIT(s) (String){ s, sizeof(s) - 1 }
+#define STR_LIT(s) (String){ s, (u64)(sizeof(s) - 1) }
 
 typedef struct String String;
 struct String {
 	char *value;
-	u32 len;
+	u64 len;
 };
 
-String string_new(Arena *arena, u32 len);
+String string_new(Arena *arena, u64 len);
 
 // Copies the string into a new arena.
 String string_copy(Arena *arena, String existing);
@@ -25,7 +25,7 @@ String string_copy(Arena *arena, String existing);
 // src: String to create a slice from.
 // offset: Starting position from the `src` string.
 // len: Length of the slice taken from the `src` string.
-String string_slice(String *src, u32 offset, u32 len);
+String string_slice(String *src, u64 offset, u64 len);
 
 bool string_compare(String *a, String *b);
 

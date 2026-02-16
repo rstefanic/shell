@@ -4,7 +4,7 @@
 
 #include "string.h"
 
-String string_new(Arena *arena, u32 len) {
+String string_new(Arena *arena, u64 len) {
 	char *value = arena_alloc(arena, len);
 	assert(value != NULL);
 
@@ -20,7 +20,7 @@ String string_copy(Arena *arena, String existing) {
 	return new;
 }
 
-String string_slice(String *src, u32 offset, u32 len) {
+String string_slice(String *src, u64 offset, u64 len) {
 	assert(len <= src->len);
 	assert(offset <= src->len);
 
@@ -35,7 +35,7 @@ bool string_compare(String *a, String *b) {
 		return false;
 	}
 
-	for (u32 i = 0; i < a->len; i++) {
+	for (u64 i = 0; i < a->len; i++) {
 		if (a->value[i] != b->value[i]) {
 			return false;
 		}
