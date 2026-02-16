@@ -26,14 +26,13 @@ unsigned char symtable_backing_buffer[SYMTABLE_ARENA_BYTES_LEN];
 Arena symtable_arena = {0};
 HashTable *symtable = {0};
 
-typedef enum BuiltinCommand BuiltinCommand;
-enum BuiltinCommand {
+typedef enum {
 	BC_NONE,
 	BC_CD,
 	BC_PWD,
 	BC_EXIT,
 	BC_ECHO
-};
+} BuiltinCommand ;
 
 bool compare_token(char* value, Token *tok) {
 	if (strlen(value) != tok->raw.len) {
