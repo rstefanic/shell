@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g -fsanitize=address
+CFLAGS = -Wall -Wextra -pedantic -g -O0 -fsanitize=address
 
 TARGET = shell
 
