@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic
+CFLAGS = -Wall -Wextra -Wconversion -pedantic
 DEBUG_CFLAGS = -g -O0 -fsanitize=address
 
 config ?= debug
