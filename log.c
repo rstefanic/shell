@@ -47,7 +47,7 @@ void log_emit_message(LogLevel level, String message) {
 	assert(_global_log_context.size < _global_log_context.capacity);
 
 	// Grab the current context size and increment it.
-	u32 idx = _global_log_context.size;
+	u64 idx = _global_log_context.size;
 	_global_log_context.size += 1;
 
 	// Add this log message copying the existing message. Since the scope
@@ -58,10 +58,10 @@ void log_emit_message(LogLevel level, String message) {
 	log_message->message = string_copy(&_global_log_arena, message);
 }
 
-u32 log_context_count_by(LogLevel level) {
+u64 log_context_count_by(LogLevel level) {
 	// Create an array for the 4 LogLevels and count them.
-	u32 context_counts[4] = { 0 };
-	for (u32 i = 0; i < _global_log_context.size; i++) {
+	u64 context_counts[4] = { 0 };
+	for (u64 i = 0; i < _global_log_context.size; i++) {
 		LogMessage message = _global_log_context.messages[i];
 		context_counts[message.level] += 1;
 	}
@@ -74,15 +74,15 @@ String log_context_get_messages(LogLevel level) {
 		return STR_LIT("");
 	}
 	
-	u32 level_count = log_context_count_by(level);
+	u64 level_count = log_context_count_by(level);
 	if (level_count == 0) {
 		return STR_LIT("");
 	}
 
 	// We're assuming here that the log messages are under 256 bytes.
-	u32 result_pos = 0;
+	u64 result_pos = 0;
 	String result = string_new(_global_log_context.arena, level_count * 256);
-	for (u32 i = 0; i < _global_log_context.size; i++) {
+	for (u64 i = 0; i < _global_log_context.size; i++) {
 		LogMessage message = _global_log_context.messages[i];
 		if (message.level == level) {
 			assert((result_pos + message.message.len) < result.len);

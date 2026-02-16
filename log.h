@@ -22,15 +22,15 @@ typedef struct {
 
 typedef struct {
 	Arena *arena;
-	u32 size;
-	u32 capacity;
+	u64 size;
+	u64 capacity;
 	LogMessage *messages;
 } LogContext;
 
 void log_context_start();
 void log_context_end();
 void log_emit_message(LogLevel level, String message);
-u32 log_context_count_by(LogLevel level);
+u64 log_context_count_by(LogLevel level);
 String log_context_get_messages(LogLevel level);
 
 #endif
