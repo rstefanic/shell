@@ -27,8 +27,8 @@ struct Expression {
 		} atom;
 		struct {
 			Expression *children[10];
-			u32 length;
-			u32 capacity;
+			u64 length;
+			u64 capacity;
 		} list;
 	} data;
 };
@@ -36,16 +36,16 @@ struct Expression {
 typedef struct Parser Parser;
 struct Parser {
 	Expression *expressions_buf;
-	u32 expressions_len;
-	u32 expressions_pos;
+	u64 expressions_len;
+	u64 expressions_pos;
 
 	Token *tokens;
-	u32 tokens_len;
-	u32 tokens_pos;
+	u64 tokens_len;
+	u64 tokens_pos;
 };
 
 // Primary parsing function
-Expression *parse(Expression *expressions, u32 expressions_len, Token *tokens, u32 tokens_len);
+Expression *parse(Expression *expressions, u64 expressions_len, Token *tokens, u64 tokens_len);
 
 // Token Parsing Helpers
 Token *parser_peek(Parser *parser);

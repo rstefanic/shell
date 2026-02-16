@@ -5,7 +5,7 @@
 #include "lexer.h"
 #include "log.h"
 
-Expression *parse(Expression *expressions, u32 expressions_len, Token *tokens, u32 tokens_len) {
+Expression *parse(Expression *expressions, u64 expressions_len, Token *tokens, u64 tokens_len) {
 	Parser parser = (Parser) {
 		.expressions_buf = expressions,
 		.expressions_len = expressions_len,
@@ -26,7 +26,7 @@ Expression *parse(Expression *expressions, u32 expressions_len, Token *tokens, u
 	// NOTE: This is similar to the `parse_list` function since a program
 	// is also just a list of expressions.
 	while (parser_peek(&parser)->type != TOK_EOF) {
-		u32 len = program->data.list.length;
+		u64 len = program->data.list.length;
 		assert(len < program->data.list.capacity);
 
 		Token *token = parser_peek(&parser);
@@ -117,7 +117,7 @@ Expression *parse_list(Parser *parser) {
 	// TODO: Don't exceed grabbing tokens outside of bounds of token length.
 	while (true) {
 		// Ensure we have enough list capacity to parse this.
-		u32 len = expr->data.list.length;
+		u64 len = expr->data.list.length;
 		assert(expr->data.list.capacity > len);
 
 		Token *token = parser_peek(parser);
