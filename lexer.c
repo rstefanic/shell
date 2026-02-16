@@ -59,8 +59,8 @@ void parse_paren(Lexer *lexer, Token *tok) {
 }
 
 void parse_string(Lexer *lexer, Token *tok) {
-	u32 start = lexer->ptr;
-	u32 len = 0;
+	u64 start = lexer->ptr;
+	u64 len = 0;
 	char prev = '\0'; // tracks the previous character to check escape seq
 
 	while (!end(lexer)) {
@@ -82,8 +82,8 @@ void parse_string(Lexer *lexer, Token *tok) {
 }
 
 void parse_number(Lexer *lexer, Token *tok) {
-	u32 start = lexer->ptr;
-	u32 len = 0;
+	u64 start = lexer->ptr;
+	u64 len = 0;
 	while (!end(lexer)) {
 		char c = peek(lexer);
 		if (!(isdigit(c) || c == '.'))
@@ -107,8 +107,8 @@ bool is_ident_char(char c) {
 }
 
 void parse_identifier(Lexer *lexer, Token *tok) {
-	u32 start = lexer->ptr;
-	u32 len = 0;
+	u64 start = lexer->ptr;
+	u64 len = 0;
 	while (!end(lexer)) {
 		char c = peek(lexer);
 		if (!is_ident_char(c))
@@ -122,13 +122,13 @@ void parse_identifier(Lexer *lexer, Token *tok) {
 	tok->type = TOK_IDENT;
 }
 
-bool lex(Token* tokens, u32 token_len, String *input) {
+bool lex(Token* tokens, u64 token_len, String *input) {
 	Lexer lexer = {
 		.buf = input,
 		.ptr = 0,
 	};
 
-	u32 i = 0; // iterator for available tokens
+	u64 i = 0; // iterator for available tokens
 	while (!end(&lexer)) {
 		// Assert that we have enough space in our Token buffer to parse.
 		assert(i < token_len);

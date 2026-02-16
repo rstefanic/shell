@@ -26,10 +26,10 @@ typedef struct Token Token;
 typedef struct Lexer Lexer;
 struct Lexer {
 	String *buf;
-	u32	ptr;	// pointer to current character
+	u64	ptr;	// pointer to current character
 };
 
-bool lex(Token* tokens, u32 token_len, String *input);
+bool lex(Token* tokens, u64 token_len, String *input);
 
 #ifdef DEBUG
 const char* debug_token_type_to_string(TokenType type);
