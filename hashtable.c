@@ -13,7 +13,7 @@ HashTable *hashtable_create(Arena *a) {
 }
 
 void hashtable_insert(HashTable *hashtable, String key, void *value) {
-	u32 idx = djb2_hash(key) % TABLE_SIZE;
+	u64 idx = djb2_hash(key) % TABLE_SIZE;
 
 	// If the key already exists, then overwrite its value.
 	Entry *curr = hashtable->table[idx];
@@ -34,7 +34,7 @@ void hashtable_insert(HashTable *hashtable, String key, void *value) {
 }
 
 Entry *hashtable_get(HashTable *hashtable, String key) {
-	u32 hash = djb2_hash(key) % TABLE_SIZE;
+	u64 hash = djb2_hash(key) % TABLE_SIZE;
 	Entry *curr = hashtable->table[hash];
 	while (curr != NULL) {
 		if (string_compare(&curr->key, &key)) {
@@ -46,10 +46,10 @@ Entry *hashtable_get(HashTable *hashtable, String key) {
 	return NULL;
 }
 
-unsigned long djb2_hash(String key) {
+u64 djb2_hash(String key) {
 	unsigned long hash = 5381; // magic starting value
-	for (u32 i = 0; i < key.len; i++) {
-		char c = key.value[i];
+	for (u64 i = 0; i < key.len; i++) {
+		u64 c = (u64)key.value[i];
 		hash = hash * 33 + c;
 	}
 	return hash;

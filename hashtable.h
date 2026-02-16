@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "string.h"
 
-#define TABLE_SIZE 32
+#define TABLE_SIZE 64
 
 typedef struct Entry {
 	String key;
@@ -20,6 +20,6 @@ typedef struct HashTable {
 HashTable *hashtable_create(Arena *a);
 void hashtable_insert(HashTable *hashtable, String key, void *value);
 Entry *hashtable_get(HashTable *hashtable, String key);
-unsigned long djb2_hash(String key);
+u64 djb2_hash(String key);
 
 #endif
