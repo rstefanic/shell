@@ -19,7 +19,6 @@ Expression *parse(Arena *arena, Token *tokens, u64 tokens_len) {
 
 	// This is the root node of the AST.
 	Expression *program = new_expression(&parser);
-	assert(program != NULL);
 	program->type = EXPR_LIST;
 	program->data.list.length = 0;
 	program->data.list.capacity = 10;
@@ -70,14 +69,15 @@ Token *parser_advance(Parser *parser) {
 }
 
 Expression *new_expression(Parser *parser) {
-	return arena_alloc(parser->arena, sizeof(Expression));
+	Expression *new = arena_alloc(parser->arena, sizeof(Expression));
+	assert(new != NULL);
+	return new;
 }
 
 Expression *parse_atom(Parser *parser) {
 	Token *token = parser_advance(parser); // consume the atom
 
 	Expression *expression = new_expression(parser);
-	assert(expression != NULL);
 	expression->type = EXPR_ATOM;
 	expression->data.atom.value = *token;
 
@@ -104,7 +104,6 @@ Expression *parse_list(Parser *parser) {
 
 	// Start a new list expression
 	Expression *expr = new_expression(parser);
-	assert(expr != NULL);
 	expr->type = EXPR_LIST;
 	expr->data.list.length = 0;
 	expr->data.list.capacity = 10; // matches the size of `**children`
