@@ -536,11 +536,7 @@ int main() {
 	#if DEBUG
 		print_tokens(tokens, token_len);
 	#endif
-
-		u64 expressions_len = 128;
-		Expression *expressions = arena_alloc(&frame_arena, expressions_len * sizeof(Expression));
-		assert(expressions != NULL);
-		parse(expressions, expressions_len, tokens, token_len);
+		Expression *expressions = parse(&frame_arena, tokens, token_len);
 	#if DEBUG
 		print_expressions(expressions, expressions_len, 0);
 	#endif

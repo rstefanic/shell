@@ -5,11 +5,13 @@
 #include "lexer.h"
 #include "log.h"
 
-Expression *parse(Expression *expressions, u64 expressions_len, Token *tokens, u64 tokens_len) {
+Expression *parse(Arena *arena, Token *tokens, u64 tokens_len) {
+	// Take the start offset so that we can calculate how much memory this
+	// function has consumed by the end and add it to the Info Report.
+	u64 start_offset = arena->curr_offset;
+
 	Parser parser = (Parser) {
-		.expressions_buf = expressions,
-		.expressions_len = expressions_len,
-		.expressions_pos = 0,
+		.arena = arena,
 		.tokens = tokens,
 		.tokens_len = tokens_len,
 		.tokens_pos = 0
@@ -43,7 +45,7 @@ Expression *parse(Expression *expressions, u64 expressions_len, Token *tokens, u
 	sprintf(
 		buf,
 		"(parser) parse memory used: %lu bytes\n",
-		sizeof(Expression) * parser.expressions_pos
+		arena->curr_offset - start_offset
 	);
 	log_emit_message(LOG_LEVEL_INFO, (String) {
 		.value = buf,
@@ -68,14 +70,7 @@ Token *parser_advance(Parser *parser) {
 }
 
 Expression *new_expression(Parser *parser) {
-	// Out of Memory check
-	if (parser->expressions_pos >= parser->expressions_len) {
-		return NULL;
-	}
-
-	Expression *expr = &parser->expressions_buf[parser->expressions_pos];
-	parser->expressions_pos += 1;
-	return expr;
+	return arena_alloc(parser->arena, sizeof(Expression));
 }
 
 Expression *parse_atom(Parser *parser) {

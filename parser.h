@@ -35,9 +35,7 @@ struct Expression {
 
 typedef struct Parser Parser;
 struct Parser {
-	Expression *expressions_buf;
-	u64 expressions_len;
-	u64 expressions_pos;
+	Arena *arena;
 
 	Token *tokens;
 	u64 tokens_len;
@@ -45,7 +43,7 @@ struct Parser {
 };
 
 // Primary parsing function
-Expression *parse(Expression *expressions, u64 expressions_len, Token *tokens, u64 tokens_len);
+Expression *parse(Arena *arena, Token *tokens, u64 tokens_len);
 
 // Token Parsing Helpers
 Token *parser_peek(Parser *parser);
