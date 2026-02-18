@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "lexer.h"
 #include "log.h"
+#include "memory.h"
 
 Expression *parse(Arena *arena, Token *tokens, u64 tokens_len) {
 	// Take the start offset so that we can calculate how much memory this
@@ -20,24 +21,18 @@ Expression *parse(Arena *arena, Token *tokens, u64 tokens_len) {
 	// This is the root node of the AST.
 	Expression *program = new_expression(&parser);
 	program->type = EXPR_LIST;
-	program->data.list.length = 0;
-	program->data.list.capacity = 10;
+	program->data.list = parser_new_expression_list(arena);
 
 	// Keep parsing the program expressions until we hit EOF.
 	// NOTE: This is similar to the `parse_list` function since a program
 	// is also just a list of expressions.
 	while (parser_peek(&parser)->type != TOK_EOF) {
-		u64 len = program->data.list.length;
-		assert(len < program->data.list.capacity);
-
 		Token *token = parser_peek(&parser);
 		if (token->type == TOK_LEFTPAREN) {
-			program->data.list.children[len] = parse_list(&parser);
+			parser_expression_list_push(&program->data.list, *parse_list(&parser));
 		} else {
-			program->data.list.children[len] = parse_atom(&parser);
+			parser_expression_list_push(&program->data.list, *parse_atom(&parser));
 		}
-
-		program->data.list.length += 1;
 	}
 
 	char buf[256] = { 0 };
@@ -105,30 +100,57 @@ Expression *parse_list(Parser *parser) {
 	// Start a new list expression
 	Expression *expr = new_expression(parser);
 	expr->type = EXPR_LIST;
-	expr->data.list.length = 0;
-	expr->data.list.capacity = 10; // matches the size of `**children`
+	expr->data.list = parser_new_expression_list(parser->arena);
 
-	// TODO: Don't exceed grabbing tokens outside of bounds of token length.
 	while (true) {
-		// Ensure we have enough list capacity to parse this.
-		u64 len = expr->data.list.length;
-		assert(expr->data.list.capacity > len);
-
+		// TODO: Don't exceed grabbing tokens outside of bounds of token length.
 		Token *token = parser_peek(parser);
 		switch (token->type) {
 		case TOK_EOF:
 			return expr;
 		case TOK_LEFTPAREN:
-			expr->data.list.children[len] = parse_list(parser);
+			parser_expression_list_push(&expr->data.list, *parse_list(parser));
 			break;
 		case TOK_RIGHTPAREN:
 			parser_advance(parser); // consume the ')'
 			return expr;
 		default:
-			expr->data.list.children[len] = parse_atom(parser);
+			parser_expression_list_push(&expr->data.list, *parse_atom(parser));
 		}
-
-		expr->data.list.length += 1;
 	}
 }
 
+
+struct ExpressionList parser_new_expression_list(Arena *arena) {
+	u64 capacity = 8;
+	Expression *expressions = arena_alloc(arena, sizeof(Expression) * capacity);
+	assert(expressions != NULL);
+	return (struct ExpressionList){
+		.arena = arena,
+		.expressions = expressions,
+		.size = 0,
+		.capacity = capacity
+	};
+}
+
+void parser_expression_list_push(struct ExpressionList *expressions, Expression expr) {
+	// If we've run out of space, double the capacity.
+	if (expressions->size >= expressions->capacity) {
+		Expression *expanded = arena_alloc(
+			expressions->arena,
+			expressions->capacity * 2
+		);
+		assert(expanded != NULL);
+
+		// NOTE: This is a bit wasteful as we're just losing a reference
+		// to the old memory. The memory will be cleaned up but this is
+		// technically a leak that will need to be patched later. This
+		// shouldn't be too bad though since it's reasonable to assume
+		// that most lists right now will have less than 8 expressions.
+		memcpy(expanded, expressions->expressions, sizeof(Expression) * expressions->capacity);
+		expressions->expressions = expanded;
+		expressions->capacity *= 2;
+	}
+
+	expressions->expressions[expressions->size++] = expr;
+}

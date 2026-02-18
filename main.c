@@ -138,9 +138,9 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 
 	// Skip the first ATOM since we know what it is by the `type` parameter.
 	u64 child_idx = 1;
-	if (builtin_expression->data.list.length > 1) {
-		Expression *curr = builtin_expression->data.list.children[child_idx];
-		tok = &curr->data.atom.value;
+	if (builtin_expression->data.list.size > 1) {
+		Expression curr = builtin_expression->data.list.expressions[child_idx];
+		tok = &curr.data.atom.value;
 	}
 
 	// Pull out the current working directory and store it in path. Some
@@ -225,8 +225,8 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 		break;
 	}
 	case BC_ECHO: {
-		for (u64 i = 0; i < builtin_expression->data.list.length; i++) {
-			Expression *next = builtin_expression->data.list.children[i];
+		for (u64 i = 0; i < builtin_expression->data.list.size; i++) {
+			Expression *next = builtin_expression->data.list.expressions + i;
 			if (next == NULL)
 				break;
 
@@ -317,8 +317,7 @@ void print_expression(Expression *expr, u64 indent) {
 
 void execute_program(Expression *exec_node) {
 	assert(exec_node->type == EXPR_LIST);
-	u64 child_idx = 0;
-	Expression *child = exec_node->data.list.children[child_idx];
+	Expression *child = exec_node->data.list.expressions;
 
 	// TODO: Handle recursive nodes if child itself is a EXPR_LIST
 	assert(child->type == EXPR_ATOM);
@@ -369,9 +368,10 @@ void execute_program(Expression *exec_node) {
 		// Open the program to read its output if it exists.
 		// NOTE: Currently only opens the program in read mode.
 		// NOTE: 1kb buffer size to read program output is small.
+		u64 child_idx = 0;
 		if (res == 0) {
 			child_idx += 1;
-			Expression *curr = exec_node->data.list.children[child_idx];
+			Expression *curr = exec_node->data.list.expressions + child_idx;
 
 			// Piece together the rest of the tokens as arguments
 			// to this program and pass them along.
@@ -394,8 +394,8 @@ void execute_program(Expression *exec_node) {
 
 				// Advance the node
 				child_idx += 1;
-				assert(child_idx <= exec_node->data.list.length);
-				curr = exec_node->data.list.children[child_idx];
+				assert(child_idx <= exec_node->data.list.size);
+				curr = exec_node->data.list.expressions + child_idx;
 			}
 
 			FILE *fp;
@@ -419,24 +419,25 @@ void execute_program(Expression *exec_node) {
 
 void eval_expressions(Expression *expressions) {
 	assert(expressions->type == EXPR_LIST);
-	Expression **children = expressions->data.list.children;
 	u64 child_idx = 0;
-	Expression *curr = children[child_idx];
+	Expression *children = expressions->data.list.expressions;
+	Expression *curr = children;
 
-	// Evaluate any sub expressions
-	while (curr != NULL && child_idx < expressions->data.list.length) {
+	// Evaluate sub expressions.
+	while (curr != NULL && child_idx < expressions->data.list.size) {
 		// TODO: eval_expression will need to change to replace the
 		// EXPR_LIST node here and overwrite it. This means we will
 		// probably have to create a more complicated run time env.
 		if (curr->type == EXPR_LIST) {
+			//zzz
 			eval_expressions(curr);
 		}
 		child_idx += 1;
-		curr = children[child_idx];
+		curr = children + child_idx;
 	}
 
 	// Now evaluate this list as a whole
-	curr = children[0];
+	curr = children;
 	if (curr == NULL) {
 		return;
 	}

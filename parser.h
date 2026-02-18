@@ -17,21 +17,24 @@ typedef enum AtomKind {
 	ATOM_STRING
 } AtomKind;
 
-typedef struct Expression Expression;
-struct Expression {
+typedef struct Expression {
 	ExpressionType type;
 	union {
 		struct {
 			AtomKind kind;
 			Token value;
 		} atom;
-		struct {
-			Expression *children[10];
-			u64 length;
+		struct ExpressionList {
+			Arena *arena;
+			struct Expression *expressions;
+			u64 size;
 			u64 capacity;
 		} list;
 	} data;
-};
+} Expression;
+
+struct ExpressionList parser_new_expression_list(Arena *arena);
+void parser_expression_list_push(struct ExpressionList *expressions, Expression expr);
 
 typedef struct Parser Parser;
 struct Parser {
