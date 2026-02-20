@@ -430,7 +430,6 @@ void eval_expressions(Expression *expressions) {
 		// EXPR_LIST node here and overwrite it. This means we will
 		// probably have to create a more complicated run time env.
 		if (curr->type == EXPR_LIST) {
-			//zzz
 			eval_expressions(curr);
 		}
 		child_idx += 1;
