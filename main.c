@@ -543,9 +543,8 @@ int main() {
 		print_expressions(expressions, 0);
 	#endif
 
-		Expression *expr = &expressions[0];
-		assert(expr->type == EXPR_LIST);
-		eval_expressions(expr);
+		assert(expressions->type == EXPR_LIST);
+		eval_expressions(expressions);
 
 		cleanup:
 		if (log_context_count_by(LOG_LEVEL_INFO) > 0) {
