@@ -268,15 +268,16 @@ void print_tokens(Token *tokens, u64 token_len) {
 }
 
 void print_expression(Expression *expr, u64 indent);
-void print_expressions(Expression *expressions, u64 expr_len, u64 indent) {
+void print_expressions(Expression *expressions, u64 indent) {
 	if (indent == 0) {
 		printf("[DEBUG] EXPRESSIONS:\n");
 	}
 
-	u64 i = 0;
-	for (i = 0; i < expr_len; i++) {
-		Expression expr = expressions[i];
-		print_expression(&expr, indent);
+	Expression *children = expressions->data.list.expressions;
+	u64 len = expressions->data.list.size;
+	for (u64 i = 0; i < len; i++) {
+		Expression child = children[i];
+		print_expression(&child, indent+1);
 	}
 }
 
@@ -305,8 +306,8 @@ void print_expression(Expression *expr, u64 indent) {
 		Token tok = expr->data.atom.value;
 		printf("raw: [%.*s]\n", (int)tok.raw.len, tok.raw.value);
 	} else {
-		Expression *children = *(expr->data.list.children);
-		u64 len = expr->data.list.length;
+		Expression *children = expr->data.list.expressions;
+		u64 len = expr->data.list.size;
 		for (u64 i = 0; i < len; i++) {
 			Expression child = children[i];
 			print_expression(&child, indent+1);
@@ -539,7 +540,7 @@ int main() {
 	#endif
 		Expression *expressions = parse(&frame_arena, tokens, token_len);
 	#if DEBUG
-		print_expressions(expressions, expressions_len, 0);
+		print_expressions(expressions, 0);
 	#endif
 
 		Expression *expr = &expressions[0];
