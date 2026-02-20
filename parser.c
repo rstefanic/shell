@@ -138,7 +138,7 @@ void parser_expression_list_push(struct ExpressionList *expressions, Expression 
 	if (expressions->size >= expressions->capacity) {
 		Expression *expanded = arena_alloc(
 			expressions->arena,
-			expressions->capacity * 2
+			sizeof(Expression) * expressions->capacity * 2
 		);
 		assert(expanded != NULL);
 
