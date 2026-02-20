@@ -31,8 +31,4 @@ struct Lexer {
 
 bool lex(Token* tokens, u64 token_len, String *input);
 
-#ifdef DEBUG
-const char* debug_token_type_to_string(TokenType type);
-#endif
-
 #endif

@@ -166,24 +166,3 @@ bool lex(Token* tokens, u64 token_len, String *input) {
 	return true;
 }
 
-#ifdef DEBUG
-const char* debug_token_type_to_string(TokenType type) {
-	switch (type) {
-	case TOK_EOF:
-		return "TOK_EOF";
-	case TOK_LEFTPAREN:
-		return "TOK_LEFTPAREN";
-	case TOK_RIGHTPAREN:
-		return "TOK_RIGHTPAREN";
-	case TOK_IDENT:
-		return "TOK_IDENT";
-	case TOK_NUMBER:
-		return "TOK_NUMBER";
-	case TOK_STRING:
-		return "TOK_STRING";
-	default:
-		return "UNKNOWN";
-	}
-}
-#endif
-
