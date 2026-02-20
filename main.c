@@ -27,6 +27,8 @@ typedef enum {
 	BC_ECHO
 } BuiltinCommand ;
 
+void eval_expressions(Expression *expressions);
+
 bool compare_token(char* value, Token *tok) {
 	if (strlen(value) != tok->raw.len) {
 		return false;
@@ -230,12 +232,14 @@ void handle_builtin(Expression *builtin_expression, BuiltinCommand type) {
 			if (next == NULL)
 				break;
 
-			assert(next->type == EXPR_ATOM); // TODO: handle lists
-			tok = &next->data.atom.value;
-
-			char buf[1024] = {0};
-			interpolate_string(tok->raw.value, tok->raw.len, buf, 1024);
-			printf("%s ", buf);
+			if (next->type == EXPR_ATOM) {
+				tok = &next->data.atom.value;
+				char buf[1024] = {0};
+				interpolate_string(tok->raw.value, tok->raw.len, buf, 1024);
+				printf("%s ", buf);
+			} else {
+				eval_expressions(next);
+			}
 		}
 
 		// Ending newline for the prompt to start on the next line.
@@ -442,14 +446,15 @@ void eval_expressions(Expression *expressions) {
 		return;
 	}
 
-	assert(curr->type == EXPR_ATOM);
-	BuiltinCommand cmd = try_parse_builtin(curr);
-	if (cmd == BC_NONE) {
-		execute_program(expressions);
-	} else if (cmd == BC_EXIT) {
-		exit(0);
-	} else {
-		handle_builtin(expressions, cmd);
+	if (curr->type == EXPR_ATOM) {
+		BuiltinCommand cmd = try_parse_builtin(curr);
+		if (cmd == BC_NONE) {
+			execute_program(expressions);
+		} else if (cmd == BC_EXIT) {
+			exit(0);
+		} else {
+			handle_builtin(expressions, cmd);
+		}
 	}
 }
 
