@@ -1,16 +1,17 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Wconversion -pedantic
-DEBUG_CFLAGS = -g -O0 -fsanitize=address
+DEBUG_CFLAGS = -g -O0 -fsanitize=address -DDEBUG
 
 config ?= debug
 
 ifeq ($(config), debug)
 	CFLAGS += $(DEBUG_CFLAGS)
+	DEBUG_OBJS = debug.o
 endif
 
 TARGET = shell
 
-OBJS = main.o memory.o lexer.o string.o parser.o hashtable.o log.o
+OBJS = main.o memory.o lexer.o string.o parser.o hashtable.o log.o $(DEBUG_OBJS)
 
 run: $(TARGET)
 	@./$(TARGET)
@@ -38,6 +39,9 @@ hashtable.o: hashtable.c
 
 log.o: log.c
 	$(CC) $(CFLAGS) -c log.c -o log.o
+
+debug.o: debug.c
+	$(CC) $(CFLAGS) -c debug.c -o debug.o
 
 clean:
 	rm -f $(TARGET) $(OBJS)
