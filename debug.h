@@ -12,5 +12,4 @@ void print_expressions(Expression *expressions, u64 indent);
 void tab(u64 n);
 void print_expression(Expression *expr, u64 indent);
 
-#endif // !_DEBUGH_ _DEBUGH_
-
+#endif

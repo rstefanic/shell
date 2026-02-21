@@ -19,7 +19,6 @@ void print_tokens(Token *tokens, u64 token_len) {
 	printf("\n\n");
 }
 
-void print_expression(Expression *expr, u64 indent);
 void print_expressions(Expression *expressions, u64 indent) {
 	if (indent == 0) {
 		printf("[DEBUG] EXPRESSIONS:\n");
@@ -34,7 +33,7 @@ void print_expressions(Expression *expressions, u64 indent) {
 }
 
 void tab(u64 n) {
-	for (int i = 0; i < n; i++) 
+	for (u64 i = 0; i < n; i++) 
 		printf("\t");
 }
 
