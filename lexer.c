@@ -97,10 +97,22 @@ void parse_number(Lexer *lexer, Token *tok) {
 	tok->type = TOK_NUMBER;
 }
 
+// Identifiers can start with any a letter or any of the following chars.
+bool is_ident_prefix_char(char c) {
+	return isalpha(c)
+		|| c == '\''
+		|| c == '$'
+		|| c == '!'
+		|| c == '-'
+		|| c == '~'
+		|| c == '/';
+}
+
+// The remainder of an identifier can be made up of letters, numbers, or the
+// following characters.
 bool is_ident_char(char c) {
 	return isalnum(c)
 		|| c == '?' 
-		|| c == '$'
 		|| c == '/'
 		|| c == '-'
 		|| c == '~';
@@ -109,8 +121,16 @@ bool is_ident_char(char c) {
 void parse_identifier(Lexer *lexer, Token *tok) {
 	u64 start = lexer->ptr;
 	u64 len = 0;
+	char c = peek(lexer);
+
+	// Assume that this code path only runs when the caller knows that
+	// the first character is one of the starting identifier characters.
+	assert(is_ident_prefix_char(c));
+	advance(lexer);
+	len += 1;
+
 	while (!end(lexer)) {
-		char c = peek(lexer);
+		c = peek(lexer);
 		if (!is_ident_char(c))
 			break;
 
@@ -146,7 +166,7 @@ bool lex(Token* tokens, u64 token_len, String *input) {
 			parse_string(&lexer, tok);
 		else if (isdigit(c))
 			parse_number(&lexer, tok);
-		else if (is_ident_char(c))
+		else if (is_ident_prefix_char(c))
 			parse_identifier(&lexer, tok);
 		else {
 			printf("Unrecognized token: \"%c\"\n", c);
