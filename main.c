@@ -477,7 +477,6 @@ int main() {
 		Expression *expressions = parse(&frame_arena, tokens, token_len);
 
 	#if DEBUG
-		printf("YEAH\n\n\n\nyEAH\n\n\n");
 		print_tokens(tokens, token_len);
 		print_expressions(expressions, 0);
 	#endif
