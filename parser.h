@@ -20,7 +20,7 @@ typedef enum AtomKind {
 typedef struct Expression {
 	ExpressionType type;
 	union {
-		struct {
+		struct Atom {
 			AtomKind kind;
 			Token value;
 		} atom;
