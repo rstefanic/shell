@@ -146,13 +146,13 @@ Value evaluate_stack_frame(Runtime *runtime) {
 		stack_frame->values_len = expr->data.list.size;
 
 		for (u64 i = 0; i < stack_frame->values_len; i++) {
-			Expression curr = expr->data.list.expressions[i];
-			if (curr.type == EXPR_ATOM) {
-				stack_frame->values[i] = atom_to_value(runtime, &curr.data.atom);
+			Expression *curr = &expr->data.list.expressions[i];
+			if (curr->type == EXPR_ATOM) {
+				stack_frame->values[i] = atom_to_value(runtime, &curr->data.atom);
 			} else {
 				StackFrame *inner_stack_frame = arena_alloc(runtime->arena, sizeof(StackFrame));
 				inner_stack_frame->prev_frame = stack_frame;
-				inner_stack_frame->expression = curr.data.list.expressions;
+				inner_stack_frame->expression = curr->data.list.expressions;
 
 				// Set the new stackframe for the runtime and re-run
 				runtime->stack_frame = inner_stack_frame;
@@ -444,21 +444,20 @@ Value execute_program(Runtime *runtime) {
 		// NOTE: Currently only opens the program in read mode.
 		// NOTE: 1kb buffer size to read program output is small.
 		if (res == 0) {
-
 			// Append the rest of the values as arguments to the program.
 			for (u64 i = 1; i < stack_frame->values_len; i++) {
-				Value curr = values[i];
-				assert(curr.type == VAL_STRING); // TODO: Allow other types
+				Value *curr = &values[i];
+				assert(curr->type == VAL_STRING); // TODO: Allow other types
 
 				// Ensure there's enough space in the bin buffer.
 				// +1 is added for the space to separate args.
-				assert((bin_len+curr.data.string->len+1) < PATH_MAX);
+				assert((bin_len+curr->data.string->len+1) < PATH_MAX);
 
 				// Add a space to separate this argument from
 				// the last/program name and append it.
 				bin[bin_len] = ' ';
-				memcpy(&bin[bin_len+1], curr.data.string->value, curr.data.string->len);
-				bin_len += curr.data.string->len + 1;
+				memcpy(&bin[bin_len+1], curr->data.string->value, curr->data.string->len);
+				bin_len += curr->data.string->len + 1;
 			}
 
 			FILE *fp;
