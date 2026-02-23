@@ -11,7 +11,7 @@ endif
 
 TARGET = shell
 
-OBJS = main.o memory.o lexer.o string.o parser.o hashtable.o log.o $(DEBUG_OBJS)
+OBJS = main.o memory.o lexer.o string.o parser.o hashtable.o log.o evaluator.o $(DEBUG_OBJS)
 
 run: $(TARGET)
 	@./$(TARGET)
@@ -39,6 +39,9 @@ hashtable.o: hashtable.c
 
 log.o: log.c
 	$(CC) $(CFLAGS) -c log.c -o log.o
+
+evaluator.o: evaluator.c
+	$(CC) $(CFLAGS) -c evaluator.c -o evaluator.o
 
 debug.o: debug.c
 	$(CC) $(CFLAGS) -c debug.c -o debug.o
