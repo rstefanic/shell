@@ -101,7 +101,6 @@ Value atom_to_value(Runtime *runtime, struct Atom *atom) {
 			memset(varnamebuf, 0, maxvarnamelen);
 			memcpy(varnamebuf, ident_raw.value, maxvarnamelen);
 
-			printf("varnamebuf: %s\n", varnamebuf);
 			const char *env_var_tmp = getenv(varnamebuf);
 			assert(env_var_tmp != NULL);
 
