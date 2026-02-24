@@ -398,7 +398,13 @@ Value execute_program(Runtime *runtime) {
 	assert(stack_frame->values[0].type == VAL_EXECUTABLE);
 
 	Value *values = stack_frame->values;
-	String *exec_name = values[0].data.symbol;
+
+	// Slice the string to exclude the '!' character in the executable.
+	String exec_name = string_slice(
+		values[0].data.symbol,
+		1,
+		values[0].data.symbol->len-1
+	);
 
 	char pathbuf[1024];	// copy of the PATH environment variable
 	char *path;		// for the PATH environment variable
@@ -433,9 +439,9 @@ Value execute_program(Runtime *runtime) {
 		}
 
 		// Append the binary name to the path string
-		assert(bin_len+exec_name->len < PATH_MAX);
-		memcpy(&bin[bin_len], exec_name->value, exec_name->len);
-		bin_len += exec_name->len;
+		assert(bin_len+exec_name.len < PATH_MAX);
+		memcpy(&bin[bin_len], exec_name.value, exec_name.len);
+		bin_len += exec_name.len;
 
 		struct stat file;
 		int res = stat(bin, &file);
@@ -476,6 +482,6 @@ Value execute_program(Runtime *runtime) {
 		curr = strtok_r(NULL, ":", &saveptr);
 	}
 
-	printf("\"%.*s\": No such program\n", (int)exec_name->len, exec_name->value);
+	printf("\"%.*s\": No such program\n", (int)exec_name.len, exec_name.value);
 	return NIL_VALUE;
 }
