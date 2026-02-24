@@ -142,16 +142,16 @@ Value evaluate_stack_frame(Runtime *runtime) {
 	default: {
 		u64 list_count = expr->data.list.size;
 		stack_frame->values = arena_alloc(runtime->arena, sizeof(Value) * list_count);
-		stack_frame->values_len = expr->data.list.size;
+		stack_frame->values_len = list_count;
 
-		for (u64 i = 0; i < stack_frame->values_len; i++) {
+		for (u64 i = 0; i < list_count; i++) {
 			Expression *curr = &expr->data.list.expressions[i];
 			if (curr->type == EXPR_ATOM) {
 				stack_frame->values[i] = atom_to_value(runtime, &curr->data.atom);
 			} else {
 				StackFrame *inner_stack_frame = arena_alloc(runtime->arena, sizeof(StackFrame));
 				inner_stack_frame->prev_frame = stack_frame;
-				inner_stack_frame->expression = curr->data.list.expressions;
+				inner_stack_frame->expression = curr;
 
 				// Set the new stackframe for the runtime and re-run
 				runtime->stack_frame = inner_stack_frame;
@@ -162,8 +162,7 @@ Value evaluate_stack_frame(Runtime *runtime) {
 			}
 		}
 
-
-		// Now evaluate the list.
+		// Now evaluate the list of values together.
 		assert(stack_frame->values != NULL);
 		Value initial_value = stack_frame->values[0];
 
