@@ -7,6 +7,7 @@
 
 #include "evaluator.h"
 #include "parser.h"
+#include "string.h"
 
 Value NIL_VALUE = {
 	.type = VAL_NIL
@@ -65,7 +66,7 @@ Value atom_to_value(Runtime *runtime, struct Atom *atom) {
 	case ATOM_STRING:
 		return (Value) {
 			.type = VAL_STRING,
-			.data.string = &atom->value.raw
+			.data.string = atom->value.raw
 		};
 	case ATOM_IDENT: {
 		String ident_raw = atom->value.raw;
@@ -74,7 +75,7 @@ Value atom_to_value(Runtime *runtime, struct Atom *atom) {
 		if (is_executable_ident(atom)) {
 			return (Value) {
 				.type = VAL_EXECUTABLE,
-				.data.string = &atom->value.raw,
+				.data.string = atom->value.raw,
 			};
 		}
 
@@ -123,7 +124,7 @@ Value atom_to_value(Runtime *runtime, struct Atom *atom) {
 		assert(variable != NULL);
 		return (Value) {
 			.type = VAL_STRING,
-			.data.string = &atom->value.raw,
+			.data.string = atom->value.raw,
 		};
 	}
 	}
@@ -204,7 +205,7 @@ Value handle_builtin(Runtime *runtime, StackFrame *stack_frame) {
 		// Default the user to their HOME directory.
 		Value destination = (Value) {
 			.type = VAL_STRING,
-			.data.string = &STR_LIT("~")
+			.data.string = STR_LIT("~")
 		};
 
 		// Use the next value as the argument to CD if it exists.
@@ -216,18 +217,18 @@ Value handle_builtin(Runtime *runtime, StackFrame *stack_frame) {
 		// an absolute path. Zero out the remaining contents of the path
 		// buffer so that we avoid conflicts with the user's directory.
 		if (
-			destination.data.string->value[0] == '/' ||
-			destination.data.string->value[0] == '$'
+			destination.data.string.value[0] == '/' ||
+			destination.data.string.value[0] == '$'
 		) {
 			memcpy(
 				path,
-				destination.data.string->value,
-				destination.data.string->len
+				destination.data.string.value,
+				destination.data.string.len
 			);
 
-			u64 dest_len = destination.data.string->len;
+			u64 dest_len = destination.data.string.len;
 			memset(path+dest_len, 0, PATH_MAX-dest_len);
-		} else if (destination.data.string->value[0] == '~') {
+		} else if (destination.data.string.value[0] == '~') {
 			Entry *home_symbol = hashtable_get(runtime->symtable, STR_LIT("HOME"));
 			// If `$HOME` is NULL, first see if we can fetch in from env.
 			if (home_symbol == NULL) {
@@ -253,9 +254,9 @@ Value handle_builtin(Runtime *runtime, StackFrame *stack_frame) {
 
 			memcpy(path, home.value, home.len);
 
-			if (destination.data.string->len > 1) {
-				memcpy(&path[home.len], &destination.data.string->value[1], destination.data.string->len - 1);
-				totallen += destination.data.string->len - 1;
+			if (destination.data.string.len > 1) {
+				memcpy(&path[home.len], &destination.data.string.value[1], destination.data.string.len - 1);
+				totallen += destination.data.string.len - 1;
 			}
 			memset(path+totallen, 0, PATH_MAX-totallen);
 		} else {
@@ -269,8 +270,8 @@ Value handle_builtin(Runtime *runtime, StackFrame *stack_frame) {
 				pathlen += 1;
 			}
 
-			assert((pathlen+destination.data.string->len) < PATH_MAX);
-			memcpy(&path[pathlen], destination.data.string->value, destination.data.string->len);
+			assert((pathlen+destination.data.string.len) < PATH_MAX);
+			memcpy(&path[pathlen], destination.data.string.value, destination.data.string.len);
 		}
 
 		interpolate_string(runtime, path, strlen(path), final, PATH_MAX);
@@ -294,8 +295,8 @@ Value handle_builtin(Runtime *runtime, StackFrame *stack_frame) {
 			char buf[1024] = {0};
 			interpolate_string(
 				runtime,
-				next->data.string->value,
-				next->data.string->len,
+				next->data.string.value,
+				next->data.string.len,
 				buf,
 				1024
 			);
@@ -455,13 +456,13 @@ Value execute_program(Runtime *runtime) {
 
 				// Ensure there's enough space in the bin buffer.
 				// +1 is added for the space to separate args.
-				assert((bin_len+curr->data.string->len+1) < PATH_MAX);
+				assert((bin_len+curr->data.string.len+1) < PATH_MAX);
 
 				// Add a space to separate this argument from
 				// the last/program name and append it.
 				bin[bin_len] = ' ';
-				memcpy(&bin[bin_len+1], curr->data.string->value, curr->data.string->len);
-				bin_len += curr->data.string->len + 1;
+				memcpy(&bin[bin_len+1], curr->data.string.value, curr->data.string.len);
+				bin_len += curr->data.string.len + 1;
 			}
 
 			FILE *fp;

@@ -29,7 +29,7 @@ typedef struct Value {
 	ValueType type;
 	union {
 		i64	number;
-		String	*string;
+		String	string;
 		String	*symbol;
 		BuiltinCommand cmd;
 	} data;
