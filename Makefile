@@ -12,6 +12,7 @@ endif
 TARGET = shell
 
 OBJS = main.o memory.o lexer.o string.o parser.o hashtable.o log.o evaluator.o $(DEBUG_OBJS)
+TEST_OBJS = lexer.o string.o memory.o log.o
 
 run: $(TARGET)
 	@./$(TARGET)
@@ -47,4 +48,11 @@ debug.o: debug.c
 	$(CC) $(CFLAGS) -c debug.c -o debug.o
 
 clean:
-	rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET) $(OBJS) lexer_test
+
+# Tests
+test: lexer_test
+	@./lexer_test
+
+lexer_test: tests/lexer_test.c $(TEST_OBJS)
+	$(CC) $(CFLAGS) -o lexer_test tests/lexer_test.c $(TEST_OBJS)
