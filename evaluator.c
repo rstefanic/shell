@@ -42,6 +42,8 @@ BuiltinCommand try_parse_builtin(struct Atom *atom) {
 		return BC_EXIT;
 	} else if (string_compare(&STR_LIT("echo"), value)) {
 		return BC_ECHO;
+	} else if (string_compare(&STR_LIT("str"), value)) {
+		return BC_STR;
 	}
 
 	return BC_NONE;
@@ -309,6 +311,34 @@ Value handle_builtin(Runtime *runtime, StackFrame *stack_frame) {
 		// Ending newline for the prompt to start on the next line.
 		printf("\n");
 		break;
+	}
+	case BC_STR: {
+		char buf[1024]; // NOTE: small buffer
+		u64 max_len = 1024;
+		u64 pos = 0;
+
+		for (u64 i = 1; i < stack_frame->values_len; i++) {
+			Value value = stack_frame->values[i];
+
+			if (value.type != VAL_STRING) {
+				printf("\"str\" expects values of type String\n");
+				return NIL_VALUE;
+			}
+			
+			// NOTE: This will silently concatenate a string if it doesn't fit.
+			u64 value_len = value.data.string.len;
+			if (value_len+pos < max_len) {
+				memcpy(buf+pos, value.data.string.value, value_len);
+				pos += value_len;
+			}
+		}
+
+		String result = string_new(runtime->arena, pos);
+		memcpy(result.value, buf, pos);
+		return (Value) {
+			.type = VAL_STRING,
+			.data.string = result,
+		};
 	}
 	default:
 		assert(false); // unreachable

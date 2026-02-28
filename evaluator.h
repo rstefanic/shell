@@ -13,6 +13,7 @@ typedef enum {
 	BC_CD,
 	BC_PWD,
 	BC_EXIT,
+	BC_STR,
 	BC_ECHO
 } BuiltinCommand;
 
