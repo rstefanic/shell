@@ -33,6 +33,7 @@ typedef struct Value {
 		String	string;
 		String	*symbol;
 		BuiltinCommand cmd;
+		String	executable;
 	} data;
 } Value;
 

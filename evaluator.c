@@ -80,7 +80,7 @@ Value atom_to_value(Runtime *runtime, struct Atom *atom) {
 		if (is_executable_ident(atom)) {
 			return (Value) {
 				.type = VAL_EXECUTABLE,
-				.data.string = atom->value.raw,
+				.data.executable = atom->value.raw,
 			};
 		}
 
@@ -433,9 +433,9 @@ Value execute_program(Runtime *runtime) {
 
 	// Slice the string to exclude the '!' character in the executable.
 	String exec_name = string_slice(
-		values[0].data.symbol,
+		&values[0].data.executable,
 		1,
-		values[0].data.symbol->len-1
+		values[0].data.executable.len-1
 	);
 
 	char pathbuf[1024];	// copy of the PATH environment variable
