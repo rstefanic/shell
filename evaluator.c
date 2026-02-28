@@ -63,11 +63,14 @@ Value atom_to_value(Runtime *runtime, struct Atom *atom) {
 			.data.number = out
 		};
 	}
-	case ATOM_STRING:
+	case ATOM_STRING: {
+		// Trim the token to remove the leading and trailing '"'.
+		String substring = string_slice(&atom->value.raw, 1, atom->value.raw.len-2);
 		return (Value) {
 			.type = VAL_STRING,
-			.data.string = atom->value.raw
+			.data.string = string_copy(runtime->arena, substring)
 		};
+	}
 	case ATOM_IDENT: {
 		String ident_raw = atom->value.raw;
 
