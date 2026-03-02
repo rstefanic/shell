@@ -48,11 +48,15 @@ debug.o: debug.c
 	$(CC) $(CFLAGS) -c debug.c -o debug.o
 
 clean:
-	rm -f $(TARGET) $(OBJS) lexer_test
+	rm -f $(TARGET) $(OBJS) lexer_test parser_test
 
 # Tests
-test: lexer_test
+test: lexer_test parser_test
 	@./lexer_test
+	@./parser_test
 
 lexer_test: tests/lexer_test.c $(TEST_OBJS)
 	$(CC) $(CFLAGS) -o lexer_test tests/lexer_test.c $(TEST_OBJS)
+
+parser_test: tests/parser_test.c parser.o $(TEST_OBJS)
+	$(CC) $(CFLAGS) -o parser_test tests/parser_test.c parser.o $(TEST_OBJS)

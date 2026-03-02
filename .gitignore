@@ -11,7 +11,7 @@
 # Executables
 *.out
 shell
-lexer_test
+*_test
 
 # Valgrind
 valgrind*
