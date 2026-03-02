@@ -127,7 +127,7 @@ TEST(test_simple_string) {
 	bool result = lex(tokens, MAX_TOKENS, &input);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(tokens[0].type, TOK_STRING);
-	ASSERT_STR_EQ(tokens[0].raw, "hello", 5);
+	ASSERT_STR_EQ(tokens[0].raw, "\"hello\"", 7);
 }
 
 TEST(test_string_with_escaped_quote) {
@@ -138,7 +138,7 @@ TEST(test_string_with_escaped_quote) {
 	ASSERT_TRUE(result);
 	ASSERT_EQ(tokens[0].type, TOK_STRING);
 	// raw includes the escaped quote: hello\"world
-	ASSERT_STR_EQ(tokens[0].raw, "hello\\\"world", 12);
+	ASSERT_STR_EQ(tokens[0].raw, "\"hello\\\"world\"", 14);
 }
 
 TEST(test_empty_string) {
@@ -148,7 +148,7 @@ TEST(test_empty_string) {
 	bool result = lex(tokens, MAX_TOKENS, &input);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(tokens[0].type, TOK_STRING);
-	ASSERT_EQ(tokens[0].raw.len, 0);
+	ASSERT_EQ(tokens[0].raw.len, 2);
 }
 
 TEST(test_multiple_strings) {
@@ -158,11 +158,11 @@ TEST(test_multiple_strings) {
 	bool result = lex(tokens, MAX_TOKENS, &input);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(tokens[0].type, TOK_STRING);
-	ASSERT_STR_EQ(tokens[0].raw, "a", 1);
+	ASSERT_STR_EQ(tokens[0].raw, "\"a\"", 3);
 	ASSERT_EQ(tokens[1].type, TOK_STRING);
-	ASSERT_STR_EQ(tokens[1].raw, "b", 1);
+	ASSERT_STR_EQ(tokens[1].raw, "\"b\"", 3);
 	ASSERT_EQ(tokens[2].type, TOK_STRING);
-	ASSERT_STR_EQ(tokens[2].raw, "c", 1);
+	ASSERT_STR_EQ(tokens[2].raw, "\"c\"", 3);
 }
 
 TEST(test_string_with_spaces) {
@@ -172,7 +172,7 @@ TEST(test_string_with_spaces) {
 	bool result = lex(tokens, MAX_TOKENS, &input);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(tokens[0].type, TOK_STRING);
-	ASSERT_STR_EQ(tokens[0].raw, "hello world", 11);
+	ASSERT_STR_EQ(tokens[0].raw, "\"hello world\"", 13);
 }
 
 // ---------------------------------------------------------------------------
@@ -271,7 +271,7 @@ TEST(test_mixed_expression) {
 	ASSERT_EQ(tokens[2].type, TOK_NUMBER);
 	ASSERT_STR_EQ(tokens[2].raw, "123", 3);
 	ASSERT_EQ(tokens[3].type, TOK_STRING);
-	ASSERT_STR_EQ(tokens[3].raw, "bar", 3);
+	ASSERT_STR_EQ(tokens[3].raw, "\"bar\"", 5);
 	ASSERT_EQ(tokens[4].type, TOK_RIGHTPAREN);
 }
 
