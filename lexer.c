@@ -177,7 +177,7 @@ bool lex(Token* tokens, u64 token_len, String *input) {
 	}
 
 	char buf[256] = { 0 };
-	sprintf(buf, "(lexer) lex memory used: %llu bytes\n", sizeof(Token) * i);
+	snprintf(buf, 256, "(lexer) lex memory used: %llu bytes\n", sizeof(Token) * i);
 	log_emit_message(LOG_LEVEL_INFO, (String) {
 		.value = buf,
 		.len = strlen(buf)
@@ -185,4 +185,3 @@ bool lex(Token* tokens, u64 token_len, String *input) {
 
 	return true;
 }
-
