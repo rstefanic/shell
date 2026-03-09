@@ -3,6 +3,12 @@
 
 #include <stdint.h>
 
+#ifdef __APPLE__
+#define PATH_MAX 1024
+#else
+#include <linux/limits.h>
+#endif
+
 typedef int8_t i8;
 typedef int16_t i16;
 typedef int32_t i32;

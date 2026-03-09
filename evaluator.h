@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include "base.h"
 #include "memory.h"
 #include "hashtable.h"
 #include "parser.h"
