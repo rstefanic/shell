@@ -27,8 +27,8 @@ typedef struct {
 	LogMessage *messages;
 } LogContext;
 
-void log_context_start();
-void log_context_end();
+void log_context_start(void);
+void log_context_end(void);
 void log_emit_message(LogLevel level, String message);
 u64 log_context_count_by(LogLevel level);
 String log_context_get_messages(LogLevel level);

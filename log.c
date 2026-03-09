@@ -9,7 +9,7 @@ static __thread LogContext _global_log_context = { 0 };
 
 // First time setup for the _global_log_context. Adds the reference to the
 // arena so that we can allocate and easily clean up the global log context.
-void init_global_log_context() {
+void init_global_log_context(void) {
 	if (_global_log_arena.buf == NULL) {
 		arena_init(
 			&_global_log_arena,
@@ -22,7 +22,7 @@ void init_global_log_context() {
 	}
 }
 
-void log_context_start() {
+void log_context_start(void) {
 	// Ensure that we're not re-starting a context that's already open.
 	assert(_global_log_context.messages == NULL);
 	init_global_log_context();
@@ -36,7 +36,7 @@ void log_context_start() {
 	);
 }
 
-void log_context_end() {
+void log_context_end(void) {
 	assert(_global_log_context.messages != NULL);
 	arena_free(_global_log_context.arena);
 	_global_log_context.messages = NULL;

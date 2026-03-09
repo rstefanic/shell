@@ -65,7 +65,7 @@ void minimum_cursor_row_start(i64 min_row) {
 	tcsetattr(STDIN_FILENO, TCSANOW, &curr_termios);
 }
 
-int main() {
+int main(void) {
 	unsigned char perm_arena_backing_buffer[MB(2)];
 	Arena perm_arena = {0};
 	arena_init(&perm_arena, perm_arena_backing_buffer, MB(2));
