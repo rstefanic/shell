@@ -58,7 +58,7 @@ void minimum_cursor_row_start(i64 min_row) {
 
 	// If the cursor is in the min row, then move it under the min_row.
 	if (row < min_row) {
-		printf("\033[%lu;1H\033[K", min_row+1);
+		printf("\033[%llu;1H\033[K", min_row+1);
 	}
 
 	// Restore the old termios.

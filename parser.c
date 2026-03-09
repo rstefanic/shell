@@ -38,7 +38,7 @@ Expression *parse(Arena *arena, Token *tokens, u64 tokens_len) {
 	char buf[256] = { 0 };
 	sprintf(
 		buf,
-		"(parser) parse memory used: %lu bytes\n",
+		"(parser) parse memory used: %llu bytes\n",
 		arena->curr_offset - start_offset
 	);
 	log_emit_message(LOG_LEVEL_INFO, (String) {
