@@ -16,3 +16,5 @@ shell
 # Valgrind
 valgrind*
 vgcore.*
+
+*.dSYM
